@@ -46,3 +46,11 @@ function spiff_admin_menu_html() {
 </div>
 <?php
 }
+
+/**
+ * Enqueue ecommerce client script.
+ */
+add_action('wp_enqueue_scripts', 'spiff_enqueue_ecommerce_client');
+function spiff_enqueue_ecommerce_client() {
+  wp_enqueue_script('spiff-ecommerce-client', plugin_dir_url(__FILE__) . 'public/js/api.js');
+}
