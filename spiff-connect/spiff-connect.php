@@ -148,8 +148,24 @@ function spiff_append_create_design_button_on_product_page() {
 add_filter('woocommerce_add_cart_item_data', 'spiff_save_cart_item', 10, 2);
 function spiff_save_cart_item($cart_item_data, $product_id) {
     $transaction_id = sanitize_text_field($_GET['spiff-transaction-id']);
-    if (isset($transaction_id)) {
-      $cart_item_data['spiff_transaction_id'] = $transaction_id;
+    if ($transaction_id) {
+        $cart_item_data['spiff_transaction_id'] = $transaction_id;
     }
     return $cart_item_data;
+}
+
+/**
+ * Display transaction ID in the cart.
+ */
+//add_filter('woocommerce_get_item_data', 'spiff_show_transaction_id_in_cart', 10, 2);
+function spiff_show_transaction_id_in_cart($cart_data, $cart_item = null) {
+    $custom_items = array();
+    if(!empty($cart_data)) {
+        $custom_items = $cart_data;
+    }
+    $transaction_id = esc_html($cart_item['spiff_transaction_id']);
+    if($transaction_id) {
+        $custom_items[] = array("name" => 'Transaction ID', "value" => $transaction_id);
+    }
+    return $custom_items;
 }
