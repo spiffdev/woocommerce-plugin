@@ -151,8 +151,8 @@ function spiff_append_create_design_button_on_product_page() {
  */
 add_filter('woocommerce_add_cart_item_data', 'spiff_save_cart_item', 10, 2);
 function spiff_save_cart_item($cart_item_data, $product_id) {
-    $transaction_id = sanitize_text_field($_GET['spiff-transaction-id']);
-    if ($transaction_id) {
+    if (array_key_exists('spiff-transaction-id', $_GET)) {
+        $transaction_id = sanitize_text_field($_GET['spiff-transaction-id']);
         $cart_item_data['spiff_transaction_id'] = $transaction_id;
     }
     return $cart_item_data;
@@ -172,6 +172,16 @@ function spiff_show_transaction_id_in_cart($cart_data, $cart_item = null) {
         $custom_items[] = array("name" => 'Transaction ID', "value" => $transaction_id);
     }
     return $custom_items;
+}
+
+/**
+ * Add cart item transaction ID to order item.
+ */
+add_action('woocommerce_add_order_item_meta','spiff_add_cart_item_attributes_to_order_item', 10, 3 );
+function spiff_add_cart_item_attributes_to_order_item($item_id, $cart_item, $cart_item_key) {
+    if (array_key_exists('spiff_transaction_id', $cart_item)) {
+        wc_add_order_item_meta($item_id, __('Spiff Transaction ID'), $cart_item['spiff_transaction_id'], true);
+    }
 }
 
 /**
