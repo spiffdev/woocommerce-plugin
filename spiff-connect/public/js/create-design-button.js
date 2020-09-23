@@ -20,7 +20,7 @@ const spiffAppendCreateDesignButton = (integrationProductId, currencyCode, redir
 
 								transaction.on('complete', result => {
 										console.log(result);
-										window.location = htmlDecode(redirectUrl);
+										window.location = `${htmlDecode(redirectUrl)}&spiff-transaction-id=${result.transactionId}`;
 								});
 
 								transaction.execute();

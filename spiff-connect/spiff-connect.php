@@ -141,3 +141,15 @@ function spiff_append_create_design_button_on_product_page() {
 <?php
 
 }
+
+/**
+ * Save transaction IDs to cart items.
+ */
+add_filter('woocommerce_add_cart_item_data', 'spiff_save_cart_item', 10, 2);
+function spiff_save_cart_item($cart_item_data, $product_id) {
+    $transaction_id = sanitize_text_field($_GET['spiff-transaction-id']);
+    if (isset($transaction_id)) {
+      $cart_item_data['spiff_transaction_id'] = $transaction_id;
+    }
+    return $cart_item_data;
+}
