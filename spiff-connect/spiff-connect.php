@@ -28,17 +28,17 @@ function spiff_admin_menu_html() {
     <p>Your integration's key and secret may be found on your integration's page in the Spiff Hub.</p>
 
     <form autocomplete="off" method="post" action="options.php">
-        <?php settings_fields( 'spiff-settings-group' ); ?>
-        <?php do_settings_sections( 'spiff-settings-group' ); ?>
+        <?php settings_fields('spiff-settings-group'); ?>
+        <?php do_settings_sections('spiff-settings-group'); ?>
         <table class="form-table">
             <tr valign="top">
             <th scope="row">Access Key</th>
-            <td><input autocomplete=off type="text" name="spiff_api_key" value="<?php echo esc_attr( get_option('spiff_api_key') ); ?>" /></td>
+            <td><input autocomplete=off type="text" name="spiff_api_key" value="<?php echo esc_attr(get_option('spiff_api_key')); ?>" /></td>
             </tr>
 
             <tr valign="top">
             <th scope="row">Secret</th>
-            <td><input autocomplete=off type="password" name="spiff_api_secret" value="<?php echo esc_attr( get_option('spiff_api_secret') ); ?>" /></td>
+            <td><input autocomplete=off type="password" name="spiff_api_secret" value="<?php echo esc_attr(get_option('spiff_api_secret')); ?>" /></td>
             </tr>
         </table>
         <?php submit_button(); ?>
@@ -47,10 +47,30 @@ function spiff_admin_menu_html() {
 <?php
 }
 
+/*
+ * Add integration product ID field to admin product pages.
+ */
+add_action('woocommerce_product_options_general_product_data', 'spiff_create_integration_product_id_field');
+function spiff_create_integration_product_id_field() {
+    woocommerce_wp_text_input(array(
+      'desc_tip' => true,
+      'description' => 'To get this ID, find this product on your integration page in the Spiff Hub.',
+      'id' => 'spiff_integration_product_id',
+      'label' => 'Spiff Integration Product ID',
+    ));
+}
+add_action('woocommerce_process_product_meta', 'spiff_save_integration_product_id');
+function spiff_save_integration_product_id($post_id) {
+    $product = wc_get_product($post_id);
+    $integration_product_id = sanitize_text_field($_POST['spiff_integration_product_id']);
+    $product->update_meta_data('spiff_integration_product_id', $integration_product_id);
+    $product->save();
+}
+
 /**
  * Enqueue ecommerce client script.
  */
 add_action('wp_enqueue_scripts', 'spiff_enqueue_ecommerce_client');
 function spiff_enqueue_ecommerce_client() {
-  wp_enqueue_script('spiff-ecommerce-client', plugin_dir_url(__FILE__) . 'public/js/api.js');
+    wp_enqueue_script('spiff-ecommerce-client', plugin_dir_url(__FILE__) . 'public/js/api.js');
 }
