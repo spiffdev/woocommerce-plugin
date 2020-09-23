@@ -10,7 +10,8 @@
 
 //define("SPIFF_API_BASE", "api.spiff.com.au");
 define("SPIFF_API_BASE", "api.app.dev.spiff.com.au");
-define("SPIFF_API_ORDERS_URL", "https://" . SPIFF_API_BASE . "/api/v2/orders");
+define("SPIFF_API_ORDERS_PATH", "/api/v2/orders");
+define("SPIFF_API_ORDERS_URL", "https://" . SPIFF_API_BASE . SPIFF_API_ORDERS_PATH);
 
 /*
  * Create admin menu.
@@ -18,11 +19,11 @@ define("SPIFF_API_ORDERS_URL", "https://" . SPIFF_API_BASE . "/api/v2/orders");
 add_action('admin_menu', 'spiff_create_admin_menu');
 function spiff_create_admin_menu() {
     add_menu_page('Spiff Connect', 'Spiff Connect', 'administrator', 'spiff-connect', 'spiff_admin_menu_html');
-    add_action( 'admin_init', 'spiff_register_admin_settings' );
+    add_action('admin_init', 'spiff_register_admin_settings');
 }
 function spiff_register_admin_settings() {
-    register_setting( 'spiff-settings-group', 'spiff_api_key' );
-    register_setting( 'spiff-settings-group', 'spiff_api_secret' );
+    register_setting('spiff-settings-group', 'spiff_api_key');
+    register_setting('spiff-settings-group', 'spiff_api_secret');
 }
 function spiff_admin_menu_html() {
 
@@ -191,8 +192,59 @@ add_action('woocommerce_order_status_processing', 'spiff_create_order');
 function spiff_create_order($order_id) {
     $order = wc_get_order($order_id);
     $order_items = $order->get_items();
+
+    $items = array();
     foreach($order_items as $key => $order_item) {
-        error_log($key);
-        error_log($order_item);
+        $transactionId = wc_get_order_item_meta($key, __('Spiff Transaction ID'));
+        if (!$transactionId) {
+          continue;
+        }
+        $item = array();
+        $item['amountToOrder'] = $order_item['qty'];
+        $item['transactionId'] = $transactionId;
+        array_push($items, $item);
+    }
+
+    if (!empty($items)) {
+        spiff_post_order($items, $order->get_id());
+    }
+}
+function spiff_hex_to_base64($hex) {
+    $return = "";
+    foreach (str_split($hex, 2) as $pair) {
+        $return .= chr(hexdec($pair));
+    }
+    return base64_encode($return);
+}
+function spiff_order_post_headers($method, $path, $content_type, $body) {
+    $ACCESS_KEY = get_option('spiff_api_key');
+    $SECRET_KEY = get_option('spiff_api_secret');
+
+    $date = new DateTime("now", new DateTimeZone("GMT"));
+    $dateString = $date->format("D, d M Y H:i:s") . " GMT";
+    $md5 = md5($body, false);
+    $string_to_sign = $method . "\n" . $md5 . "\n" . $content_type . "\n" . $dateString . "\n" . $path;
+    $signature = spiff_hex_to_base64(hash_hmac("sha1", $string_to_sign, $SECRET_KEY));
+
+    return array(
+        'Authorization' => 'SOA '  . $ACCESS_KEY . ':' . $signature,
+        'Content-Type' => $content_type,
+        'Date' => $dateString,
+    );
+}
+function spiff_post_order($items, $woo_order_id) {
+    $body = json_encode(array(
+        'externalId' => $woo_order_id,
+        'autoPrint' => false,
+        'orderItems' => $items
+    ));
+    $headers = spiff_order_post_headers('POST', SPIFF_API_ORDERS_PATH, 'application/json', $body);
+    $response = wp_remote_post(SPIFF_API_ORDERS_URL, array(
+        'body' => $body,
+        'headers' => $headers,
+    ));
+    $response_status = wp_remote_retrieve_response_code($response);
+    if ($response_status !== 200) {
+        error_log(wp_remote_retrieve_body($response));
     }
 }
