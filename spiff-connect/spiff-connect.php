@@ -21,7 +21,9 @@ function spiff_register_admin_settings() {
     register_setting( 'spiff-settings-group', 'spiff_api_secret' );
 }
 function spiff_admin_menu_html() {
+
 ?>
+
 <div class="wrap">
     <h1>Spiff Connect</h1>
     <p>Enter your integration's access key and secret here.</p>
@@ -44,7 +46,9 @@ function spiff_admin_menu_html() {
         <?php submit_button(); ?>
     </form>
 </div>
+
 <?php
+
 }
 
 /**
@@ -82,6 +86,7 @@ function spiff_save_admin_product_fields($post_id) {
 add_action('wp_enqueue_scripts', 'spiff_enqueue_ecommerce_client');
 function spiff_enqueue_ecommerce_client() {
     wp_enqueue_script('spiff-ecommerce-client', plugin_dir_url(__FILE__) . 'public/js/api.js');
+    wp_enqueue_script('spiff-create-design-button', plugin_dir_url(__FILE__) . 'public/js/create-design-button.js');
 }
 
 /**
@@ -96,8 +101,8 @@ function spiff_replace_default_button_on_product_list($button, $product) {
         $xml->attributes()->href = $product->get_permalink();
         $xml->attributes()->{'aria-label'} = 'View details';
         $xml[0] = 'View details';
-        $newButton = $xml->asXML();
-        return $newButton;
+        $new_button = $xml->asXML();
+        return $new_button;
     }
     return $button;
 }
@@ -110,5 +115,19 @@ function spiff_replace_default_element_on_product_page() {
     global $product;
     if ($product->get_meta('spiff_enabled') === 'yes') {
         remove_action('woocommerce_single_product_summary', 'woocommerce_template_single_add_to_cart', 30);
+        add_action('woocommerce_single_product_summary', 'spiff_append_create_design_button_on_product_page', 35);
     }
+}
+function spiff_append_create_design_button_on_product_page() {
+    global $product;
+    $integration_product_id_js = esc_js($product->get_meta('spiff_integration_product_id'));
+    $integration_product_id_attr = esc_attr($product->get_meta('spiff_integration_product_id'));
+    $currency_code = esc_js(get_woocommerce_currency());
+?>
+
+<div class="spiff-button-integration-product-<?php echo $integration_product_id_attr; ?>"></div>
+<script>window.spiffAppendCreateDesignButton("<?php echo $integration_product_id_js; ?>", "<?php echo $currency_code; ?>")</script>
+
+<?php
+
 }
