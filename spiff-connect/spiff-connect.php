@@ -8,6 +8,10 @@
    License: GPL3
    */
 
+//define("SPIFF_API_BASE", "api.spiff.com.au");
+define("SPIFF_API_BASE", "api.app.dev.spiff.com.au");
+define("SPIFF_API_ORDERS_URL", "https://" . SPIFF_API_BASE . "/api/v2/orders");
+
 /*
  * Create admin menu.
  */
