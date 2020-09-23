@@ -83,3 +83,21 @@ add_action('wp_enqueue_scripts', 'spiff_enqueue_ecommerce_client');
 function spiff_enqueue_ecommerce_client() {
     wp_enqueue_script('spiff-ecommerce-client', plugin_dir_url(__FILE__) . 'public/js/api.js');
 }
+
+/**
+ * Replace add to cart buttons on product list pages.
+ */
+add_filter('woocommerce_loop_add_to_cart_link', 'spiff_replace_default_button_on_product_list', 10, 2);
+function spiff_replace_default_button_on_product_list($button, $product){
+    if ($product->get_meta('spiff_enabled') === 'yes') {
+      $decoded = html_entity_decode($button);
+      $xml = simplexml_load_string($decoded);
+      $xml->attributes()->class = str_replace('ajax_add_to_cart', '', $xml->attributes()->class);
+      $xml->attributes()->href = $product->get_permalink();
+      $xml->attributes()->{'aria-label'} = 'View details';
+      $xml[0] = 'View details';
+      $newButton = $xml->asXML();
+      return $newButton;
+    }
+    return $button;
+}
