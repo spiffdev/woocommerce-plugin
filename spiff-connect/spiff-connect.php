@@ -76,7 +76,7 @@ add_action('woocommerce_process_product_meta', 'spiff_save_admin_product_fields'
 function spiff_save_admin_product_fields($post_id) {
     $product = wc_get_product($post_id);
 
-    $enabled = array_key_exists('spiff_enabled', $_POST) && rest_sanitize_boolean($_POST['spiff_enabled']);
+    $enabled = isset($_POST['spiff_enabled']) && rest_sanitize_boolean($_POST['spiff_enabled']);
     $product->update_meta_data('spiff_enabled', $enabled ? 'yes' : 'no');
 
     $integration_product_id = sanitize_text_field($_POST['spiff_integration_product_id']);
@@ -152,7 +152,7 @@ function spiff_append_create_design_button_on_product_page() {
  */
 add_filter('woocommerce_add_cart_item_data', 'spiff_save_cart_item', 10, 2);
 function spiff_save_cart_item($cart_item_data, $product_id) {
-    if (array_key_exists('spiff-transaction-id', $_GET)) {
+    if (isset($_GET['spiff-transaction-id'])) {
         $transaction_id = sanitize_text_field($_GET['spiff-transaction-id']);
         $cart_item_data['spiff_transaction_id'] = $transaction_id;
     }
@@ -179,8 +179,8 @@ function spiff_show_transaction_id_in_cart($cart_data, $cart_item = null) {
  * Add cart item transaction ID to order item.
  */
 add_action('woocommerce_add_order_item_meta','spiff_add_cart_item_attributes_to_order_item', 10, 3 );
-function spiff_add_cart_item_attributes_to_order_item($item_id, $cart_item, $cart_item_key) {
-    if (array_key_exists('spiff_transaction_id', $cart_item)) {
+function spiff_add_cart_item_attributes_to_order_item($item_id, $cart_item, $order_id) {
+    if (isset($cart_item['spiff_transaction_id'])) {
         wc_add_order_item_meta($item_id, __('Spiff Transaction ID'), $cart_item['spiff_transaction_id'], true);
     }
 }
