@@ -169,3 +169,16 @@ function spiff_show_transaction_id_in_cart($cart_data, $cart_item = null) {
     }
     return $custom_items;
 }
+
+/**
+ * Create a Spiff order
+ */
+add_action('woocommerce_order_status_processing', 'spiff_create_order');
+function spiff_create_order($order_id) {
+    $order = wc_get_order($order_id);
+    $order_items = $order->get_items();
+    foreach($order_items as $key => $order_item) {
+        error_log($key);
+        error_log($order_item);
+    }
+}
