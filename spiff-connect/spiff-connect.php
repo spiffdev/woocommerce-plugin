@@ -47,11 +47,15 @@ function spiff_admin_menu_html() {
 <?php
 }
 
-/*
- * Add integration product ID field to admin product pages.
+/**
+ * Add fields to admin product pages.
  */
-add_action('woocommerce_product_options_general_product_data', 'spiff_create_integration_product_id_field');
-function spiff_create_integration_product_id_field() {
+add_action('woocommerce_product_options_general_product_data', 'spiff_create_admin_product_fields');
+function spiff_create_admin_product_fields() {
+    woocommerce_wp_checkbox( array(
+      'id' => 'spiff_enabled',
+      'label' => 'Enable Spiff',
+    ));
     woocommerce_wp_text_input(array(
       'desc_tip' => true,
       'description' => 'To get this ID, find this product on your integration page in the Spiff Hub.',
@@ -59,11 +63,16 @@ function spiff_create_integration_product_id_field() {
       'label' => 'Spiff Integration Product ID',
     ));
 }
-add_action('woocommerce_process_product_meta', 'spiff_save_integration_product_id');
-function spiff_save_integration_product_id($post_id) {
+add_action('woocommerce_process_product_meta', 'spiff_save_admin_product_fields');
+function spiff_save_admin_product_fields($post_id) {
     $product = wc_get_product($post_id);
+
+    $enabled = rest_sanitize_boolean($_POST['spiff_enabled']);
+    $product->update_meta_data('spiff_enabled', $enabled ? 'yes' : 'no');
+
     $integration_product_id = sanitize_text_field($_POST['spiff_integration_product_id']);
     $product->update_meta_data('spiff_integration_product_id', $integration_product_id);
+
     $product->save();
 }
 
