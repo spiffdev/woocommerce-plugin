@@ -11,18 +11,26 @@ Connect your WooCommerce store to Spiff and allow customers access to Spiff Work
 
 The Spiff Connect plugin allows you to use Spiff with WooCommerce.
 
-Spiff allows you to visually personalise products in 2D, 3D and AR.
+Spiff allows you to visually personalize products in 2D, 3D and AR.
 
-Being able to visualize the finished, personalised product to your customer prior to purchase is a powerful way of reducing pre-purchase risk perceptions and therefore cart abandonment.
+Being able to visualize the finished, personalized product to your customer prior to purchase is a powerful way of reducing pre-purchase risk perceptions and therefore cart abandonment.
 
 Using the 3D model, customers can interact with your products using the mouse (desktop) or fingers (mobile).
 
-Spiff takes 3D product renders to the next level, allowing you to dynamically personalise the product in real-time.
+Spiff takes 3D product renders to the next level, allowing you to dynamically personalize the product in real-time.
 
 This is especially useful if your store offers products which have customization and personalization options. In these cases, in the past, it has been difficult to visually represent these products to the customer.
 
-A further extension to this capability is the AR functionality of the Spiff app where the personalised product can activate an AR experience using the Spiff native mobile phone app.
+A further extension to this capability is the AR functionality of the Spiff app where the personalized product can activate an AR experience using the Spiff native mobile phone app.
 
 == Installation ==
 
-Instructions coming soon...
+1. Activate the Spiff Connect plugin.
+
+2. Navigate to the Spiff Connect admin page and enter your integration's access key and secret.
+
+3. For each personalizable product:
+
+    * Check the "Enable Spiff" checkbox.
+
+    * Enter the ID of the corresponding integration product.

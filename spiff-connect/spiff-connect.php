@@ -76,7 +76,7 @@ add_action('woocommerce_process_product_meta', 'spiff_save_admin_product_fields'
 function spiff_save_admin_product_fields($post_id) {
     $product = wc_get_product($post_id);
 
-    $enabled = rest_sanitize_boolean($_POST['spiff_enabled']);
+    $enabled = array_key_exists('spiff_enabled', $_POST) && rest_sanitize_boolean($_POST['spiff_enabled']);
     $product->update_meta_data('spiff_enabled', $enabled ? 'yes' : 'no');
 
     $integration_product_id = sanitize_text_field($_POST['spiff_integration_product_id']);
