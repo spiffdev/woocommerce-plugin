@@ -1,4 +1,9 @@
-const spiffAppendCreateDesignButton = (integrationProductId, currencyCode) => {
+const htmlDecode = input => {
+		const document = new DOMParser().parseFromString(input, "text/html");
+	return document.documentElement.textContent;
+};
+
+const spiffAppendCreateDesignButton = (integrationProductId, currencyCode, redirectUrl) => {
     const integrationProduct = new window.Spiff.IntegrationProduct(integrationProductId);
 
 		integrationProduct.on('ready', () => {
@@ -15,6 +20,7 @@ const spiffAppendCreateDesignButton = (integrationProductId, currencyCode) => {
 
 								transaction.on('complete', result => {
 										console.log(result);
+										window.location = htmlDecode(redirectUrl);
 								});
 
 								transaction.execute();

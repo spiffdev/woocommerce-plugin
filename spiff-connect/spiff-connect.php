@@ -123,10 +123,20 @@ function spiff_append_create_design_button_on_product_page() {
     $integration_product_id_js = esc_js($product->get_meta('spiff_integration_product_id'));
     $integration_product_id_attr = esc_attr($product->get_meta('spiff_integration_product_id'));
     $currency_code = esc_js(get_woocommerce_currency());
+    $add_to_cart_url = esc_js(add_query_arg(
+      array("add-to-cart" => $product->get_id()),
+      wc_get_cart_url()
+    ));
 ?>
 
 <div class="spiff-button-integration-product-<?php echo $integration_product_id_attr; ?>"></div>
-<script>window.spiffAppendCreateDesignButton("<?php echo $integration_product_id_js; ?>", "<?php echo $currency_code; ?>")</script>
+<script>
+  window.spiffAppendCreateDesignButton(
+    "<?php echo $integration_product_id_js; ?>",
+    "<?php echo $currency_code; ?>",
+    "<?php echo $add_to_cart_url; ?>",
+  )
+</script>
 
 <?php
 
