@@ -1,38 +1,37 @@
 const htmlDecode = input => {
-		const document = new DOMParser().parseFromString(input, "text/html");
-	return document.documentElement.textContent;
+    const document = new DOMParser().parseFromString(input, "text/html");
+    return document.documentElement.textContent;
 };
 
 const spiffAppendCreateDesignButton = (integrationProductId, currencyCode, redirectUrl) => {
     const integrationProduct = new window.Spiff.IntegrationProduct(integrationProductId);
 
-		integrationProduct.on('ready', () => {
-				const containers = document.querySelectorAll(`.spiff-button-integration-product-${integrationProductId}`);
-				containers.forEach(container => {
-						const button = document.createElement('button');
-						button.innerText = "Personalize now";
+    integrationProduct.on('ready', () => {
+        const containers = document.querySelectorAll(`.spiff-button-integration-product-${integrationProductId}`);
+        containers.forEach(container => {
+            const button = document.createElement('button');
+            button.innerText = "Personalize now";
 
-						button.onclick = () => {
-								const transaction = new window.Spiff.Transaction({
-										presentmentCurrency: currencyCode,
-										integrationProduct,
-								});
+            button.onclick = () => {
+                const transaction = new window.Spiff.Transaction({
+                    presentmentCurrency: currencyCode,
+                    integrationProduct,
+                });
 
-								transaction.on('complete', result => {
-										console.log(result);
-										window.location = `${htmlDecode(redirectUrl)}&spiff-transaction-id=${result.transactionId}`;
-								});
+                transaction.on('complete', result => {
+                    window.location = `${htmlDecode(redirectUrl)}&spiff-transaction-id=${result.transactionId}`;
+                });
 
-								transaction.execute();
-						};
+                transaction.execute();
+            };
 
-						container.appendChild(button);
-				});
-		});
+            container.appendChild(button);
+        });
+    });
 
     integrationProduct.on('invalid', () => {
-				console.error("Spiff product could not be found.");
-		});
+        console.error("Spiff product could not be found.");
+    });
 
     integrationProduct.confirmActive();
 };
