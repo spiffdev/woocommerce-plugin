@@ -88,16 +88,27 @@ function spiff_enqueue_ecommerce_client() {
  * Replace add to cart buttons on product list pages.
  */
 add_filter('woocommerce_loop_add_to_cart_link', 'spiff_replace_default_button_on_product_list', 10, 2);
-function spiff_replace_default_button_on_product_list($button, $product){
+function spiff_replace_default_button_on_product_list($button, $product) {
     if ($product->get_meta('spiff_enabled') === 'yes') {
-      $decoded = html_entity_decode($button);
-      $xml = simplexml_load_string($decoded);
-      $xml->attributes()->class = str_replace('ajax_add_to_cart', '', $xml->attributes()->class);
-      $xml->attributes()->href = $product->get_permalink();
-      $xml->attributes()->{'aria-label'} = 'View details';
-      $xml[0] = 'View details';
-      $newButton = $xml->asXML();
-      return $newButton;
+        $decoded = html_entity_decode($button);
+        $xml = simplexml_load_string($decoded);
+        $xml->attributes()->class = str_replace('ajax_add_to_cart', '', $xml->attributes()->class);
+        $xml->attributes()->href = $product->get_permalink();
+        $xml->attributes()->{'aria-label'} = 'View details';
+        $xml[0] = 'View details';
+        $newButton = $xml->asXML();
+        return $newButton;
     }
     return $button;
+}
+
+/**
+ * Replace add to cart button on single product pages.
+ */
+add_action('woocommerce_single_product_summary', 'spiff_replace_default_element_on_product_page');
+function spiff_replace_default_element_on_product_page() {
+    global $product;
+    if ($product->get_meta('spiff_enabled') === 'yes') {
+        remove_action('woocommerce_single_product_summary', 'woocommerce_template_single_add_to_cart', 30);
+    }
 }
