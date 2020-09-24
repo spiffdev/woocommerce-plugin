@@ -19,10 +19,10 @@ const spiffAppendCreateDesignButton = (wooProductId, integrationProductId, curre
                 });
 
                 transaction.on('complete', async result => {
-                    console.log(JSON.stringify(result, null, 2));
                     const data = new FormData();
                     data.append('action', 'spiff_create_cart_item')
                     data.append('spiff_create_cart_item_details', JSON.stringify({
+                        exportedData: result.exportedData,
                         price: result.baseCost + result.optionsCost,
                         transactionId: result.transactionId,
                         wooProductId,

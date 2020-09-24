@@ -162,11 +162,18 @@ function spiff_create_cart_item() {
             wp_die();
         }
         $transaction_id = sanitize_text_field($details->transactionId);
+
         $woo_product_id = sanitize_text_field($details->wooProductId);
-        $cart_item_key = $woocommerce->cart->add_to_cart($woo_product_id, 1, '', '', array(
-            'spiff_transaction_id' => $transaction_id,
-            'spiff_item_price' => floatval($price_in_subunits / ( 10 ** wc_get_price_decimals())),
-        ));
+        $metadata = array();
+        $exportedData = array();
+        foreach ($details->exportedData as $key => $value) {
+            $exportedData[sanitize_text_field($key)] = sanitize_text_field($value->value);
+        }
+        $metadata['spiff_exported_data'] = $exportedData;
+        $metadata['spiff_transaction_id'] = $transaction_id;
+        $metadata['spiff_item_price'] = floatval($price_in_subunits / ( 10 ** wc_get_price_decimals()));
+
+        $cart_item_key = $woocommerce->cart->add_to_cart($woo_product_id, 1, '', '', $metadata);
     }
     wp_die();
 }
@@ -184,17 +191,18 @@ function spiff_handle_cart_item_price($cart) {
 }
 
 /**
- * Display transaction ID in the cart.
+ * Display metadata in the cart.
  */
-//add_filter('woocommerce_get_item_data', 'spiff_show_transaction_id_in_cart', 10, 2);
-function spiff_show_transaction_id_in_cart($cart_data, $cart_item = null) {
+add_filter('woocommerce_get_item_data', 'spiff_show_metadata_in_cart', 10, 2);
+function spiff_show_metadata_in_cart($cart_data, $cart_item) {
     $custom_items = array();
-    if(!empty($cart_data)) {
+    if (!empty($cart_data)) {
         $custom_items = $cart_data;
     }
-    $transaction_id = esc_html($cart_item['spiff_transaction_id']);
-    if($transaction_id) {
-        $custom_items[] = array("name" => 'Transaction ID', "value" => $transaction_id);
+    if ($cart_item['spiff_exported_data']) {
+        foreach ($cart_item['spiff_exported_data'] as $key => $value) {
+            $custom_items[] = array('name' => esc_html($key), 'value' => esc_html($value));
+        }
     }
     return $custom_items;
 }
