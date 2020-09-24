@@ -9,7 +9,6 @@
    */
 
 define("SPIFF_API_BASE", "api.spiff.com.au");
-//define("SPIFF_API_BASE", "api.app.dev.spiff.com.au");
 define("SPIFF_API_ORDERS_PATH", "/api/v2/orders");
 define("SPIFF_API_ORDERS_URL", "https://" . SPIFF_API_BASE . SPIFF_API_ORDERS_PATH);
 
