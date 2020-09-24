@@ -178,10 +178,10 @@ function spiff_show_transaction_id_in_cart($cart_data, $cart_item = null) {
 /**
  * Add cart item transaction ID to order item.
  */
-add_action('woocommerce_add_order_item_meta','spiff_add_cart_item_attributes_to_order_item', 10, 3 );
-function spiff_add_cart_item_attributes_to_order_item($item_id, $cart_item, $order_id) {
-    if (isset($cart_item['spiff_transaction_id'])) {
-        wc_add_order_item_meta($item_id, __('Spiff Transaction ID'), $cart_item['spiff_transaction_id'], true);
+add_action('woocommerce_checkout_create_order_line_item','spiff_add_cart_item_attributes_to_order_item', 10, 4);
+function spiff_add_cart_item_attributes_to_order_item($item, $cart_item_key, $values, $order) {
+    if (isset($values['spiff_transaction_id'])) {
+        $item->update_meta_data('spiff_transaction_id', $values['spiff_transaction_id']);
     }
 }
 
@@ -195,13 +195,13 @@ function spiff_create_order($order_id) {
 
     $items = array();
     foreach($order_items as $key => $order_item) {
-        $transactionId = wc_get_order_item_meta($key, __('Spiff Transaction ID'));
-        if (!$transactionId) {
-          continue;
+        $transaction_id = $order_item->get_meta('spiff_transaction_id');
+        if (!$transaction_id) {
+            continue;
         }
         $item = array();
         $item['amountToOrder'] = $order_item['qty'];
-        $item['transactionId'] = $transactionId;
+        $item['transactionId'] = $transaction_id;
         array_push($items, $item);
     }
 
