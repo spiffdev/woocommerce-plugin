@@ -8,8 +8,8 @@
    License: GPL3
    */
 
-//define("SPIFF_API_BASE", "api.spiff.com.au");
-define("SPIFF_API_BASE", "api.app.dev.spiff.com.au");
+define("SPIFF_API_BASE", "api.spiff.com.au");
+//define("SPIFF_API_BASE", "api.app.dev.spiff.com.au");
 define("SPIFF_API_ORDERS_PATH", "/api/v2/orders");
 define("SPIFF_API_ORDERS_URL", "https://" . SPIFF_API_BASE . SPIFF_API_ORDERS_PATH);
 
@@ -24,6 +24,7 @@ function spiff_create_admin_menu() {
 function spiff_register_admin_settings() {
     register_setting('spiff-settings-group', 'spiff_api_key');
     register_setting('spiff-settings-group', 'spiff_api_secret');
+    register_setting('spiff-settings-group', 'spiff_show_customer_selections_in_cart');
 }
 function spiff_admin_menu_html() {
 
@@ -31,10 +32,12 @@ function spiff_admin_menu_html() {
 
 <div class="wrap">
     <h1>Spiff Connect</h1>
-    <p>Enter your integration's access key and secret here.</p>
-    <p>Your integration's key and secret may be found on your integration's page in the Spiff Hub.</p>
 
     <form autocomplete="off" method="post" action="options.php">
+        <h2>Integration Details</h1>
+        <p>Enter your integration's access key and secret here.</p>
+        <p>Your integration's key and secret may be found on your integration's page in the Spiff Hub.</p>
+
         <?php settings_fields('spiff-settings-group'); ?>
         <?php do_settings_sections('spiff-settings-group'); ?>
         <table class="form-table">
@@ -46,6 +49,15 @@ function spiff_admin_menu_html() {
             <tr valign="top">
             <th scope="row">Secret</th>
             <td><input autocomplete=off type="password" name="spiff_api_secret" value="<?php echo esc_attr(get_option('spiff_api_secret')); ?>" /></td>
+            </tr>
+        </table>
+
+        <h2>Settings</h2>
+
+        <table class="form-table">
+            <tr valign="top">
+            <th scope="row">Show customer selections in cart</th>
+            <td><input type="checkbox" name="spiff_show_customer_selections_in_cart" value="1" <?php echo checked("1", get_option('spiff_show_customer_selections_in_cart')); ?> /></td>
             </tr>
         </table>
         <?php submit_button(); ?>
@@ -193,7 +205,9 @@ function spiff_handle_cart_item_price($cart) {
 /**
  * Display metadata in the cart.
  */
-add_filter('woocommerce_get_item_data', 'spiff_show_metadata_in_cart', 10, 2);
+if (get_option('spiff_show_customer_selections_in_cart')) {
+    add_filter('woocommerce_get_item_data', 'spiff_show_metadata_in_cart', 10, 2);
+}
 function spiff_show_metadata_in_cart($cart_data, $cart_item) {
     $custom_items = array();
     if (!empty($cart_data)) {
