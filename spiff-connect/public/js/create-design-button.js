@@ -23,8 +23,9 @@ const spiffAppendCreateDesignButton = (wooProductId, integrationProductId, curre
                     const data = new FormData();
                     data.append('action', 'spiff_create_cart_item')
                     data.append('spiff_create_cart_item_details', JSON.stringify({
-                        wooProductId,
+                        price: result.baseCost + result.optionsCost,
                         transactionId: result.transactionId,
+                        wooProductId,
                     }));
                     await fetch(ajax_object.ajax_url, {
                         method: 'POST',

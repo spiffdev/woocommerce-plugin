@@ -156,13 +156,31 @@ function spiff_create_cart_item() {
     global $woocommerce;
     if (isset($_POST['spiff_create_cart_item_details'])) {
         $details = json_decode(stripslashes_deep($_POST['spiff_create_cart_item_details']));
+        $price_in_subunits = $details->price;
+        if ($price_in_subunits < 0) {
+            error_log('Spiff Connect received negative price when completing design.');
+            wp_die();
+        }
         $transaction_id = sanitize_text_field($details->transactionId);
         $woo_product_id = sanitize_text_field($details->wooProductId);
-        $woocommerce->cart->add_to_cart($woo_product_id, 1, '', '', array(
+        $cart_item_key = $woocommerce->cart->add_to_cart($woo_product_id, 1, '', '', array(
             'spiff_transaction_id' => $transaction_id,
+            'spiff_item_price' => floatval($price_in_subunits / ( 10 ** wc_get_price_decimals())),
         ));
     }
     wp_die();
+}
+
+/**
+ * Update cart item price to reflect option costs.
+ */
+add_action('woocommerce_before_calculate_totals', 'spiff_handle_cart_item_price', 20, 1);
+function spiff_handle_cart_item_price($cart) {
+    foreach ($cart->get_cart() as $item) {
+        if(isset($item['spiff_item_price'])) {
+            $item['data']->set_price($item['spiff_item_price']);
+        }
+    }
 }
 
 /**
