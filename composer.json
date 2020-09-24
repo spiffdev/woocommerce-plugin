@@ -1,0 +1,13 @@
+{
+    "name": "spiffdev/woocommerce-plugin",
+    "authors": [
+        {
+            "name": "spiff",
+            "email": "support@spiff.com.au"
+        }
+    ],
+    "require": {},
+    "require-dev": {
+        "phpunit/phpunit": "^9.3"
+    }
+}
