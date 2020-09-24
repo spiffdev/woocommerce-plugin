@@ -3,7 +3,7 @@ const htmlDecode = input => {
     return document.documentElement.textContent;
 };
 
-const spiffAppendCreateDesignButton = (integrationProductId, currencyCode, redirectUrl) => {
+const spiffAppendCreateDesignButton = (wooProductId, integrationProductId, currencyCode, redirectUrl) => {
     const integrationProduct = new window.Spiff.IntegrationProduct(integrationProductId);
 
     integrationProduct.on('ready', () => {
@@ -18,8 +18,19 @@ const spiffAppendCreateDesignButton = (integrationProductId, currencyCode, redir
                     integrationProduct,
                 });
 
-                transaction.on('complete', result => {
-                    window.location = `${htmlDecode(redirectUrl)}&spiff-transaction-id=${result.transactionId}`;
+                transaction.on('complete', async result => {
+                    console.log(JSON.stringify(result, null, 2));
+                    const data = new FormData();
+                    data.append('action', 'spiff_create_cart_item')
+                    data.append('spiff_create_cart_item_details', JSON.stringify({
+                        wooProductId,
+                        transactionId: result.transactionId,
+                    }));
+                    await fetch(ajax_object.ajax_url, {
+                        method: 'POST',
+                        body: data,
+                    });
+                    window.location = htmlDecode(redirectUrl);
                 });
 
                 transaction.execute();

@@ -86,12 +86,13 @@ function spiff_save_admin_product_fields($post_id) {
 }
 
 /**
- * Enqueue ecommerce client script.
+ * Enqueue Javascript.
  */
 add_action('wp_enqueue_scripts', 'spiff_enqueue_ecommerce_client');
 function spiff_enqueue_ecommerce_client() {
     wp_enqueue_script('spiff-ecommerce-client', plugin_dir_url(__FILE__) . 'public/js/api.js');
     wp_enqueue_script('spiff-create-design-button', plugin_dir_url(__FILE__) . 'public/js/create-design-button.js');
+    wp_localize_script('spiff-create-design-button', 'ajax_object', array('ajax_url' => admin_url( 'admin-ajax.php' )));
 }
 
 /**
@@ -125,21 +126,20 @@ function spiff_replace_default_element_on_product_page() {
 }
 function spiff_append_create_design_button_on_product_page() {
     global $product;
+    $woo_product_id = esc_js($product->get_id());
     $integration_product_id_js = esc_js($product->get_meta('spiff_integration_product_id'));
     $integration_product_id_attr = esc_attr($product->get_meta('spiff_integration_product_id'));
     $currency_code = esc_js(get_woocommerce_currency());
-    $add_to_cart_url = esc_js(add_query_arg(
-      array("add-to-cart" => $product->get_id()),
-      wc_get_cart_url()
-    ));
+    $cart_url = esc_js(wc_get_cart_url());
 ?>
 
 <div class="spiff-button-integration-product-<?php echo $integration_product_id_attr; ?>"></div>
 <script>
   window.spiffAppendCreateDesignButton(
+    "<?php echo $woo_product_id; ?>",
     "<?php echo $integration_product_id_js; ?>",
     "<?php echo $currency_code; ?>",
-    "<?php echo $add_to_cart_url; ?>",
+    "<?php echo $cart_url; ?>",
   )
 </script>
 
@@ -148,15 +148,21 @@ function spiff_append_create_design_button_on_product_page() {
 }
 
 /**
- * Save transaction IDs to cart items.
+ * Expose ability to add cart items from Javascript.
  */
-add_filter('woocommerce_add_cart_item_data', 'spiff_save_cart_item', 10, 2);
-function spiff_save_cart_item($cart_item_data, $product_id) {
-    if (isset($_GET['spiff-transaction-id'])) {
-        $transaction_id = sanitize_text_field($_GET['spiff-transaction-id']);
-        $cart_item_data['spiff_transaction_id'] = $transaction_id;
+add_action('wp_ajax_spiff_create_cart_item', 'spiff_create_cart_item');
+add_action('wp_ajax_nopriv_spiff_create_cart_item', 'spiff_create_cart_item');
+function spiff_create_cart_item() {
+    global $woocommerce;
+    if (isset($_POST['spiff_create_cart_item_details'])) {
+        $details = json_decode(stripslashes_deep($_POST['spiff_create_cart_item_details']));
+        $transaction_id = sanitize_text_field($details->transactionId);
+        $woo_product_id = sanitize_text_field($details->wooProductId);
+        $woocommerce->cart->add_to_cart($woo_product_id, 1, '', '', array(
+            'spiff_transaction_id' => $transaction_id,
+        ));
     }
-    return $cart_item_data;
+    wp_die();
 }
 
 /**
