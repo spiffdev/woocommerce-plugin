@@ -261,20 +261,22 @@ function spiff_hex_to_base64($hex) {
     }
     return base64_encode($return);
 }
-function spiff_order_post_headers($method, $path, $content_type, $body) {
-    $ACCESS_KEY = get_option('spiff_api_key');
-    $SECRET_KEY = get_option('spiff_api_secret');
-
-    $date = new DateTime("now", new DateTimeZone("GMT"));
-    $dateString = $date->format("D, d M Y H:i:s") . " GMT";
+function spiff_auth_header($access_key, $secret_key, $method, $body, $content_type, $date_string, $path) {
     $md5 = md5($body, false);
-    $string_to_sign = $method . "\n" . $md5 . "\n" . $content_type . "\n" . $dateString . "\n" . $path;
-    $signature = spiff_hex_to_base64(hash_hmac("sha1", $string_to_sign, $SECRET_KEY));
-
+    $string_to_sign = $method . "\n" . $md5 . "\n" . $content_type . "\n" . $date_string . "\n" . $path;
+    $signature = spiff_hex_to_base64(hash_hmac("sha1", $string_to_sign, $secret_key));
+    return 'SOA '  . $access_key . ':' . $signature;
+}
+function spiff_order_post_headers($body) {
+    $access_key = get_option('spiff_api_key');
+    $secret_key = get_option('spiff_api_secret');
+    $content_type = 'application/json';
+    $date = new DateTime("now", new DateTimeZone("GMT"));
+    $date_string = $date->format("D, d M Y H:i:s") . " GMT";
     return array(
-        'Authorization' => 'SOA '  . $ACCESS_KEY . ':' . $signature,
+        'Authorization' => spiff_auth_header($access_key, $secret_key, 'POST', $body, $content_type, $date_string, SPIFF_API_ORDERS_PATH),
         'Content-Type' => $content_type,
-        'Date' => $dateString,
+        'Date' => $date_string,
     );
 }
 function spiff_post_order($items, $woo_order_id) {
@@ -283,7 +285,7 @@ function spiff_post_order($items, $woo_order_id) {
         'autoPrint' => false,
         'orderItems' => $items
     ));
-    $headers = spiff_order_post_headers('POST', SPIFF_API_ORDERS_PATH, 'application/json', $body);
+    $headers = spiff_order_post_headers($body);
     $response = wp_remote_post(SPIFF_API_ORDERS_URL, array(
         'body' => $body,
         'headers' => $headers,
