@@ -16,16 +16,22 @@ define("SPIFF_API_ORDERS_URL", "https://" . SPIFF_API_BASE . SPIFF_API_ORDERS_PA
 /*
  * Create admin menu.
  */
+
 add_action('admin_menu', 'spiff_create_admin_menu');
+
 function spiff_create_admin_menu() {
     add_menu_page('Spiff Connect', 'Spiff Connect', 'administrator', 'spiff-connect', 'spiff_admin_menu_html');
     add_action('admin_init', 'spiff_register_admin_settings');
 }
+
+// Create all the global settings for the plugin.
 function spiff_register_admin_settings() {
     register_setting('spiff-settings-group', 'spiff_api_key');
     register_setting('spiff-settings-group', 'spiff_api_secret');
     register_setting('spiff-settings-group', 'spiff_show_customer_selections_in_cart');
 }
+
+// Render the HTML for the global settings page.
 function spiff_admin_menu_html() {
 
 ?>
@@ -71,7 +77,10 @@ function spiff_admin_menu_html() {
 /**
  * Add fields to admin product pages.
  */
+
 add_action('woocommerce_product_options_general_product_data', 'spiff_create_admin_product_fields');
+
+// Display plugin-specific fields on product page.
 function spiff_create_admin_product_fields() {
     woocommerce_wp_checkbox( array(
       'id' => 'spiff_enabled',
@@ -84,7 +93,10 @@ function spiff_create_admin_product_fields() {
       'label' => 'Spiff Integration Product ID',
     ));
 }
+
 add_action('woocommerce_process_product_meta', 'spiff_save_admin_product_fields');
+
+// Handle saving of plugin-specific fields when product page is saved.
 function spiff_save_admin_product_fields($post_id) {
     $product = wc_get_product($post_id);
 
@@ -100,7 +112,9 @@ function spiff_save_admin_product_fields($post_id) {
 /**
  * Enqueue Javascript.
  */
+
 add_action('wp_enqueue_scripts', 'spiff_enqueue_ecommerce_client');
+
 function spiff_enqueue_ecommerce_client() {
     wp_enqueue_script('spiff-ecommerce-client', plugin_dir_url(__FILE__) . 'public/js/api.js');
     wp_enqueue_script('spiff-create-design-button', plugin_dir_url(__FILE__) . 'public/js/create-design-button.js');
@@ -110,8 +124,11 @@ function spiff_enqueue_ecommerce_client() {
 /**
  * Replace add to cart buttons on product list pages.
  */
+
 add_filter('woocommerce_loop_add_to_cart_link', 'spiff_replace_default_button_on_product_list', 10, 2);
+
 function spiff_replace_default_button_on_product_list($button, $product) {
+    // Don't replace default add to cart button unless Spiff is enabled for that product.
     if ($product->get_meta('spiff_enabled') === 'yes') {
         $decoded = html_entity_decode($button);
         $xml = simplexml_load_string($decoded);
@@ -128,14 +145,19 @@ function spiff_replace_default_button_on_product_list($button, $product) {
 /**
  * Replace add to cart button on single product pages.
  */
+
 add_action('woocommerce_single_product_summary', 'spiff_replace_default_element_on_product_page');
+
 function spiff_replace_default_element_on_product_page() {
     global $product;
+    // Don't replace default add to cart button unless Spiff is enabled for that product.
     if ($product->get_meta('spiff_enabled') === 'yes') {
         remove_action('woocommerce_single_product_summary', 'woocommerce_template_single_add_to_cart', 30);
         add_action('woocommerce_single_product_summary', 'spiff_append_create_design_button_on_product_page', 35);
     }
 }
+
+// Append script element to page that creates the new button.
 function spiff_append_create_design_button_on_product_page() {
     global $product;
     $woo_product_id = esc_js($product->get_id());
@@ -162,25 +184,35 @@ function spiff_append_create_design_button_on_product_page() {
 /**
  * Expose ability to add cart items from Javascript.
  */
+
 add_action('wp_ajax_spiff_create_cart_item', 'spiff_create_cart_item');
+
 add_action('wp_ajax_nopriv_spiff_create_cart_item', 'spiff_create_cart_item');
+
 function spiff_create_cart_item() {
     global $woocommerce;
     if (isset($_POST['spiff_create_cart_item_details'])) {
         $details = json_decode(stripslashes_deep($_POST['spiff_create_cart_item_details']));
+
+        // Marshall the data received from the Javascript post into a new cart item.
+        // Everything except the product ID is used to add metadata to the cart item.
+
+        $woo_product_id = sanitize_text_field($details->wooProductId);
+        $metadata = array();
+
         $price_in_subunits = $details->price;
         if ($price_in_subunits < 0) {
             error_log('Spiff Connect received negative price when completing design.');
             wp_die();
         }
+
         $transaction_id = sanitize_text_field($details->transactionId);
 
-        $woo_product_id = sanitize_text_field($details->wooProductId);
-        $metadata = array();
         $exportedData = array();
         foreach ($details->exportedData as $key => $value) {
             $exportedData[sanitize_text_field($key)] = sanitize_text_field($value->value);
         }
+
         $metadata['spiff_exported_data'] = $exportedData;
         $metadata['spiff_transaction_id'] = $transaction_id;
         $metadata['spiff_item_price'] = floatval($price_in_subunits / ( 10 ** wc_get_price_decimals()));
@@ -193,10 +225,12 @@ function spiff_create_cart_item() {
 /**
  * Update cart item price to reflect option costs.
  */
+
 add_action('woocommerce_before_calculate_totals', 'spiff_handle_cart_item_price', 20, 1);
+
 function spiff_handle_cart_item_price($cart) {
     foreach ($cart->get_cart() as $item) {
-        if(isset($item['spiff_item_price'])) {
+        if (isset($item['spiff_item_price'])) {
             $item['data']->set_price($item['spiff_item_price']);
         }
     }
@@ -205,9 +239,12 @@ function spiff_handle_cart_item_price($cart) {
 /**
  * Display metadata in the cart.
  */
+
 if (get_option('spiff_show_customer_selections_in_cart')) {
+    // Exported data won't show in cart unless the relevant setting is turned on.
     add_filter('woocommerce_get_item_data', 'spiff_show_metadata_in_cart', 10, 2);
 }
+
 function spiff_show_metadata_in_cart($cart_data, $cart_item) {
     $custom_items = array();
     if (!empty($cart_data)) {
@@ -224,7 +261,9 @@ function spiff_show_metadata_in_cart($cart_data, $cart_item) {
 /**
  * Add cart item transaction ID to order item.
  */
+
 add_action('woocommerce_checkout_create_order_line_item','spiff_add_cart_item_attributes_to_order_item', 10, 4);
+
 function spiff_add_cart_item_attributes_to_order_item($item, $cart_item_key, $values, $order) {
     if (isset($values['spiff_transaction_id'])) {
         $item->update_meta_data('spiff_transaction_id', $values['spiff_transaction_id']);
@@ -232,13 +271,16 @@ function spiff_add_cart_item_attributes_to_order_item($item, $cart_item_key, $va
 }
 
 /**
- * Create a Spiff order
+ * Create a Spiff order when a WooCommerce order is placed.
  */
+
 add_action('woocommerce_order_status_processing', 'spiff_create_order');
+
 function spiff_create_order($order_id) {
     $order = wc_get_order($order_id);
     $order_items = $order->get_items();
 
+    // Convert each order item into an item for the create order request.
     $items = array();
     foreach($order_items as $key => $order_item) {
         $transaction_id = $order_item->get_meta('spiff_transaction_id');
@@ -251,12 +293,15 @@ function spiff_create_order($order_id) {
         array_push($items, $item);
     }
 
+    // Post the order.
     if (!empty($items)) {
         $access_key = get_option('spiff_api_key');
         $secret_key = get_option('spiff_api_secret');
         spiff_post_order($access_key, $secret_key, $items, $order->get_id());
     }
 }
+
+// Craft the request to the Spiff orders endpoint.
 function spiff_post_order($access_key, $secret_key, $items, $woo_order_id) {
     $body = json_encode(array(
         'externalId' => $woo_order_id,
