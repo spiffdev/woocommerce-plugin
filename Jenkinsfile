@@ -41,6 +41,18 @@ pipeline {
       }
     }
 
+    stage('Merge back version bump') {
+      steps {
+        script {
+          version = simpleSemanticVersion()
+          env.VERSION = version
+          writeFile file: 'VERSION', text: version
+          createFeatureBranch([version: VERSION])
+          mergeBackIn([version: VERSION, credentialsId: 'bb-user'])
+        }
+      }
+    }
+
     stage('Output zip file') {
       steps {
         sh 'docker run --rm curlimages/curl https://assets.spiff.com.au/api.js > spiff-connect/public/js/api.js'
