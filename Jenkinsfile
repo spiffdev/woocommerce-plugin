@@ -28,9 +28,7 @@ pipeline {
 
     stage('Run unit tests') {
       steps {
-        sh """
-          docker run --rm -v $(pwd):/app phpunit/phpunit tests
-        """
+        sh 'docker run --rm -v $(pwd):/app phpunit/phpunit tests'
       }
     }
   }
