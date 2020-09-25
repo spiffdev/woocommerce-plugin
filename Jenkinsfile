@@ -9,13 +9,28 @@ pipeline {
   }
 
   environment {
+    credentialsId = 'gh-user'
+    git_url = 'git@github.com:spiffdev/woocommerce-plugin.git'
     SERVICE = 'woocommerce-plugin'
   }
 
   stages {
-    stage('Dummy stage') {
+    stage('Check out Github repo') {
       steps {
-        print 'This build is in progress.'
+        standardCheckOut([
+          credentialsId: credentialsId,
+          email: 'spiffdev@spiff.com.au',
+          name: 'spiffdev',
+          git_url: git_url
+        ])
+      }
+    }
+
+    stage('Run unit tests') {
+      steps {
+        sh """
+          docker run --rm -v $(pwd):/app phpunit/phpunit tests
+        """
       }
     }
   }
