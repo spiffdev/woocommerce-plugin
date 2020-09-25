@@ -15,6 +15,13 @@ pipeline {
   }
 
   stages {
+    stage('Generate AWS vars') {
+        script {
+          awsDetails = getAWSDetails()
+          REGION = awsDetails['region']
+        }
+    }
+
     stage('Check out Github repo') {
       steps {
         standardCheckOut([
@@ -29,6 +36,13 @@ pipeline {
     stage('Run unit tests') {
       steps {
         sh 'docker run --rm -v $(pwd):/app phpunit/phpunit tests'
+      }
+    }
+
+    stage('Output zip file') {
+      steps {
+        sh 'docker run -u 1000 -v ${PWD}:/to_zip -w /to_zip --rm kramos/alpine-zip -r spiff-connect.zip spiff-connect'
+        sh "aws --region ${REGION} s3 cp spiff-connect.zip s3://local.code.spiff.com.au/spiff-connect.zip"
       }
     }
   }
