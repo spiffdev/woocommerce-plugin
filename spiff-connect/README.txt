@@ -1,7 +1,6 @@
 === Spiff Connect ===
 Contributors: spiffsupport
 Tested up to: 5.3
-Stable tag: 21
 License: GPL3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
