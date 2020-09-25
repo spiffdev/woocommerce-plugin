@@ -6,7 +6,7 @@ require 'spiff-connect/includes/spiff-connect-orders.php';
 
 final class OrderTest extends TestCase {
     public function testComputesCorrectAuthHeader() {
-        $known_auth_header = 'SOA access-key:T3Tonzh3i/x+OJ/Iyy5+IARBWKY= ';
+        $known_auth_header = 'SOA access-key:T3Tonzh3i/x+OJ/Iyy5+IARBWKY=';
 
         $body = json_encode(array(
             'externalId' => 'external-id',
