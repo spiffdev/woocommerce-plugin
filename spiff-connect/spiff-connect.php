@@ -8,6 +8,8 @@
    License: GPL3
    */
 
+require plugin_dir_path(__FILE__) . 'includes/spiff-connect-orders.php';
+
 define("SPIFF_API_BASE", "api.spiff.com.au");
 define("SPIFF_API_ORDERS_PATH", "/api/v2/orders");
 define("SPIFF_API_ORDERS_URL", "https://" . SPIFF_API_BASE . SPIFF_API_ORDERS_PATH);
@@ -251,41 +253,18 @@ function spiff_create_order($order_id) {
     }
 
     if (!empty($items)) {
-        spiff_post_order($items, $order->get_id());
+        $access_key = get_option('spiff_api_key');
+        $secret_key = get_option('spiff_api_secret');
+        spiff_post_order($access_key, $secret_key, $items, $order->get_id());
     }
 }
-function spiff_hex_to_base64($hex) {
-    $return = "";
-    foreach (str_split($hex, 2) as $pair) {
-        $return .= chr(hexdec($pair));
-    }
-    return base64_encode($return);
-}
-function spiff_auth_header($access_key, $secret_key, $method, $body, $content_type, $date_string, $path) {
-    $md5 = md5($body, false);
-    $string_to_sign = $method . "\n" . $md5 . "\n" . $content_type . "\n" . $date_string . "\n" . $path;
-    $signature = spiff_hex_to_base64(hash_hmac("sha1", $string_to_sign, $secret_key));
-    return 'SOA '  . $access_key . ':' . $signature;
-}
-function spiff_order_post_headers($body) {
-    $access_key = get_option('spiff_api_key');
-    $secret_key = get_option('spiff_api_secret');
-    $content_type = 'application/json';
-    $date = new DateTime("now", new DateTimeZone("GMT"));
-    $date_string = $date->format("D, d M Y H:i:s") . " GMT";
-    return array(
-        'Authorization' => spiff_auth_header($access_key, $secret_key, 'POST', $body, $content_type, $date_string, SPIFF_API_ORDERS_PATH),
-        'Content-Type' => $content_type,
-        'Date' => $date_string,
-    );
-}
-function spiff_post_order($items, $woo_order_id) {
+function spiff_post_order($access_key, $secret_key, $items, $woo_order_id) {
     $body = json_encode(array(
         'externalId' => $woo_order_id,
         'autoPrint' => false,
         'orderItems' => $items
     ));
-    $headers = spiff_order_post_headers($body);
+    $headers = spiff_order_post_headers($access_key, $secret_key, $body, SPIFF_API_ORDERS_PATH);
     $response = wp_remote_post(SPIFF_API_ORDERS_URL, array(
         'body' => $body,
         'headers' => $headers,
