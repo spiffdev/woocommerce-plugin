@@ -48,7 +48,7 @@ pipeline {
           env.VERSION = version
           writeFile file: 'VERSION', text: version
           createFeatureBranch([version: VERSION])
-          mergeBackIn([version: VERSION, credentialsId: 'bb-user'])
+          mergeBackIn([version: VERSION, credentialsId: 'gh-user'])
         }
       }
     }
