@@ -16,10 +16,12 @@ pipeline {
 
   stages {
     stage('Generate AWS vars') {
+      steps {
         script {
           awsDetails = getAWSDetails()
           REGION = awsDetails['region']
         }
+      }
     }
 
     stage('Check out Github repo') {
