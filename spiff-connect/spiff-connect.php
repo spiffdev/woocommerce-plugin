@@ -200,11 +200,7 @@ function spiff_create_cart_item() {
         $woo_product_id = sanitize_text_field($details->wooProductId);
         $metadata = array();
 
-        $price_in_subunits = $details->price;
-        if ($price_in_subunits < 0) {
-            error_log('Spiff Connect received negative price when completing design.');
-            wp_die();
-        }
+        $price_in_subunits = absint($details->price);
 
         $transaction_id = sanitize_text_field($details->transactionId);
 
