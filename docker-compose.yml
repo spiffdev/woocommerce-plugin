@@ -8,6 +8,7 @@ services:
     ports:
       - 8888:80
     environment:
+      SPIFF_API_BASE: api.app.dev.spiff.com.au
       WORDPRESS_DB_HOST: db
       WORDPRESS_DB_USER: exampleuser
       WORDPRESS_DB_PASSWORD: examplepass
@@ -26,6 +27,12 @@ services:
       MYSQL_RANDOM_ROOT_PASSWORD: '1'
     volumes:
       - db:/var/lib/mysql
+
+  adminer:
+      image: adminer
+      restart: always
+      ports:
+        - 8889:8080
 
 volumes:
   wordpress:

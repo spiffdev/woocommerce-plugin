@@ -9,7 +9,7 @@ License: GPL3
 
 require plugin_dir_path(__FILE__) . 'includes/spiff-connect-orders.php';
 
-define("SPIFF_API_BASE", "api.spiff.com.au");
+define("SPIFF_API_BASE", getenv("SPIFF_API_BASE"));
 define("SPIFF_API_ORDERS_PATH", "/api/v2/orders");
 define("SPIFF_API_ORDERS_URL", "https://" . SPIFF_API_BASE . SPIFF_API_ORDERS_PATH);
 
@@ -310,7 +310,7 @@ function spiff_post_order($access_key, $secret_key, $items, $woo_order_id) {
         'headers' => $headers,
     ));
     $response_status = wp_remote_retrieve_response_code($response);
-    if ($response_status !== 200) {
-        error_log(wp_remote_retrieve_body($response));
+    if ($response_status !== 201) {
+        error_log('Response status: ' . $response_status);
     }
 }
