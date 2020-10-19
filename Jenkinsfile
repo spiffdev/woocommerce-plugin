@@ -61,7 +61,7 @@ pipeline {
 
     stage('Output dev zip file') {
       steps {
-        sh 'python3 replace-env-vars.py dev > tmp && mv tmp spiff-connect/spiff-connect.php'
+        sh 'python replace-env-vars.py dev > tmp && mv tmp spiff-connect/spiff-connect.php'
         sh 'docker run --rm curlimages/curl https://assets.app.dev.spiff.com.au/api.js > spiff-connect/public/js/api.js'
         sh 'docker run -u 1000 -v ${PWD}:/to_zip -w /to_zip --rm kramos/alpine-zip -r spiff-connect-dev.zip spiff-connect'
         sh "aws --region ${REGION} s3 cp spiff-connect-dev.zip s3://local.code.spiff.com.au/spiff-connect-dev.zip"
@@ -70,7 +70,7 @@ pipeline {
 
     stage('Output prod zip file') {
       steps {
-        sh 'python3 replace-env-vars.py prod > tmp && mv tmp spiff-connect/spiff-connect.php'
+        sh 'python replace-env-vars.py prod > tmp && mv tmp spiff-connect/spiff-connect.php'
         sh 'docker run --rm curlimages/curl https://assets.spiff.com.au/api.js > spiff-connect/public/js/api.js'
         sh 'docker run -u 1000 -v ${PWD}:/to_zip -w /to_zip --rm kramos/alpine-zip -r spiff-connect.zip spiff-connect'
         sh "aws --region ${REGION} s3 cp spiff-connect.zip s3://local.code.spiff.com.au/spiff-connect.zip"
