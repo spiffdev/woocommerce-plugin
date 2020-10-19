@@ -210,13 +210,32 @@ function spiff_create_cart_item() {
         $metadata['spiff_exported_data'] = $exportedData;
         $metadata['spiff_transaction_id'] = $transaction_id;
 
-
+        $transaction = spiff_get_transaction($transaction_id);
+        $price_in_subunits = $transaction ? $transaction->data->baseCost + $transaction->data->optionsCost : 0;
         $metadata['spiff_item_price'] = floatval($price_in_subunits / ( 10 ** wc_get_price_decimals()));
 
         $cart_item_key = $woocommerce->cart->add_to_cart($woo_product_id, 1, '', '', $metadata);
     }
     wp_die();
 }
+
+// Get the data associated with a transaction.
+function spiff_get_transaction($transaction_id) {
+    $url = 'https://' . SPIFF_API_BASE . SPIFF_API_TRANSACTIONS_PATH . '/' . $transaction_id;
+    $access_key = get_option('spiff_api_key');
+    $secret_key = get_option('spiff_api_secret');
+    $headers = spiff_request_headers($access_key, $secret_key, '', SPIFF_API_TRANSACTIONS_PATH);
+    $response = wp_remote_get($url);
+    $response_status = wp_remote_retrieve_response_code($response);
+    if ($response_status !== 200) {
+        error_log('Response status: ' . $response_status);
+        return null;
+    } else {
+        $body = wp_remote_retrieve_body($response);
+        return json_decode($body);
+    }
+}
+
 
 /**
  * Update cart item price to reflect option costs.
@@ -264,12 +283,6 @@ function spiff_add_cart_item_attributes_to_order_item($item, $cart_item_key, $va
     if (isset($values['spiff_transaction_id'])) {
         $item->update_meta_data('spiff_transaction_id', $values['spiff_transaction_id']);
     }
-}
-
-// Get the data associated with a transaction.
-function spiff_get_transaction($transaction_id) {
-  $url = 'https://' . SPIFF_API_BASE . SPIFF_API_TRANSACTIONS_PATH . $transaction_id;
-    $headers = spiff_request_headers($access_key, $secret_key, $body, SPIFF_API_TRANSACTIONS_PATH);
 }
 
 /**
