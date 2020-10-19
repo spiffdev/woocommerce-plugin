@@ -211,10 +211,13 @@ function spiff_create_cart_item() {
         $metadata['spiff_transaction_id'] = $transaction_id;
 
         $transaction = spiff_get_transaction($transaction_id);
-        $price_in_subunits = $transaction ? $transaction->data->baseCost + $transaction->data->optionsCost : 0;
-        $metadata['spiff_item_price'] = floatval($price_in_subunits / ( 10 ** wc_get_price_decimals()));
-
-        $cart_item_key = $woocommerce->cart->add_to_cart($woo_product_id, 1, '', '', $metadata);
+        if (!$transaction) {
+            error_log('Failed to retrieve transaction ' . $transaction_id);
+        } else {
+            $price_in_subunits = $transaction->data->baseCost + $transaction->data->optionsCost;
+            $metadata['spiff_item_price'] = floatval($price_in_subunits / ( 10 ** wc_get_price_decimals()));
+            $woocommerce->cart->add_to_cart($woo_product_id, 1, '', '', $metadata);
+        }
     }
     wp_die();
 }
