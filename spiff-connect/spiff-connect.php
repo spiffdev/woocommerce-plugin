@@ -7,11 +7,11 @@ Author: Spiff Pty. Ltd.
 License: GPL3
 */
 
-require plugin_dir_path(__FILE__) . 'includes/spiff-connect-orders.php';
+require plugin_dir_path(__FILE__) . 'includes/spiff-connect-requests.php';
 
 define("SPIFF_API_BASE", getenv("SPIFF_API_BASE"));
 define("SPIFF_API_ORDERS_PATH", "/api/v2/orders");
-define("SPIFF_API_ORDERS_URL", "https://" . SPIFF_API_BASE . SPIFF_API_ORDERS_PATH);
+define("SPIFF_API_TRANSACTIONS_PATH", "/api/transactions");
 
 /*
  * Create admin menu.
@@ -200,8 +200,6 @@ function spiff_create_cart_item() {
         $woo_product_id = sanitize_text_field($details->wooProductId);
         $metadata = array();
 
-        $price_in_subunits = absint($details->price);
-
         $transaction_id = sanitize_text_field($details->transactionId);
 
         $exportedData = array();
@@ -211,6 +209,8 @@ function spiff_create_cart_item() {
 
         $metadata['spiff_exported_data'] = $exportedData;
         $metadata['spiff_transaction_id'] = $transaction_id;
+
+
         $metadata['spiff_item_price'] = floatval($price_in_subunits / ( 10 ** wc_get_price_decimals()));
 
         $cart_item_key = $woocommerce->cart->add_to_cart($woo_product_id, 1, '', '', $metadata);
@@ -266,6 +266,12 @@ function spiff_add_cart_item_attributes_to_order_item($item, $cart_item_key, $va
     }
 }
 
+// Get the data associated with a transaction.
+function spiff_get_transaction($transaction_id) {
+  $url = 'https://' . SPIFF_API_BASE . SPIFF_API_TRANSACTIONS_PATH . $transaction_id;
+    $headers = spiff_request_headers($access_key, $secret_key, $body, SPIFF_API_TRANSACTIONS_PATH);
+}
+
 /**
  * Create a Spiff order when a WooCommerce order is placed.
  */
@@ -304,8 +310,8 @@ function spiff_post_order($access_key, $secret_key, $items, $woo_order_id) {
         'autoPrint' => false,
         'orderItems' => $items
     ));
-    $headers = spiff_order_post_headers($access_key, $secret_key, $body, SPIFF_API_ORDERS_PATH);
-    $response = wp_remote_post(SPIFF_API_ORDERS_URL, array(
+    $headers = spiff_request_headers($access_key, $secret_key, $body, SPIFF_API_ORDERS_PATH);
+    $response = wp_remote_post("https://" . SPIFF_API_BASE . SPIFF_API_ORDERS_PATH, array(
         'body' => $body,
         'headers' => $headers,
     ));

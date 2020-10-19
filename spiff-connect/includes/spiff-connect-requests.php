@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Functions used to craft the request for submitting an order to Spiff.
+ * Functions used to craft requests to Spiff.
  */
 
 function spiff_hex_to_base64($hex) {
@@ -19,7 +19,7 @@ function spiff_auth_header($access_key, $secret_key, $method, $body, $content_ty
     return 'SOA '  . $access_key . ':' . $signature;
 }
 
-function spiff_order_post_headers($access_key, $secret_key, $body, $path) {
+function spiff_request_headers($access_key, $secret_key, $body, $path) {
     $content_type = 'application/json';
     $date = new DateTime("now", new DateTimeZone("GMT"));
     $date_string = $date->format("D, d M Y H:i:s") . " GMT";
