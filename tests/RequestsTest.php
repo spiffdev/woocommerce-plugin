@@ -2,9 +2,9 @@
 
 use PHPUnit\Framework\TestCase;
 
-require 'spiff-connect/includes/spiff-connect-orders.php';
+require 'spiff-connect/includes/spiff-connect-requests.php';
 
-final class OrderTest extends TestCase {
+final class RequestsTest extends TestCase {
     public function testComputesCorrectAuthHeader() {
         $known_auth_header = 'SOA access-key:T3Tonzh3i/x+OJ/Iyy5+IARBWKY=';
 

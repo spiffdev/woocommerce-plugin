@@ -23,7 +23,6 @@ const spiffAppendCreateDesignButton = (wooProductId, integrationProductId, curre
                     data.append('action', 'spiff_create_cart_item')
                     data.append('spiff_create_cart_item_details', JSON.stringify({
                         exportedData: result.exportedData,
-                        price: result.baseCost + result.optionsCost,
                         transactionId: result.transactionId,
                         wooProductId,
                     }));
