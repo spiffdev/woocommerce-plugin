@@ -12,6 +12,7 @@ pipeline {
     credentialsId = 'gh-user'
     git_url = 'git@github.com:spiffdev/woocommerce-plugin.git'
     SERVICE = 'woocommerce-plugin'
+    SVN_CREDS = credentials('wordpress-svn-user')
   }
 
   stages {
@@ -74,6 +75,17 @@ pipeline {
         sh 'docker run --rm curlimages/curl https://assets.spiff.com.au/api.js > spiff-connect/public/js/api.js'
         sh 'docker run -u 1000 -v ${PWD}:/to_zip -w /to_zip --rm kramos/alpine-zip -r spiff-connect.zip spiff-connect'
         sh "aws --region ${REGION} s3 cp spiff-connect.zip s3://local.code.spiff.com.au/spiff-connect.zip"
+      }
+    }
+
+    stage('Commit to subversion') {
+      steps {
+        sh 'svn co https://plugins.svn.wordpress.org/spiff-3d-product-customizer svn-repo'
+        sh 'cd svn-repo'
+        sh 'cp ../spiff-connect/* trunk/'
+        sh "svn --username ${SVN_CREDS_USR} --password ${SVN_CREDS_PSW} ci -m \"Version ${VERSION}\""
+        sh "svn cp trunk tags/${VERSION}"
+        sh "svn --username ${SVN_CREDS_USR} --password ${SVN_CREDS_PSW} ci -m \"Tag Version ${VERSION}\""
       }
     }
   }
