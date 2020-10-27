@@ -80,13 +80,12 @@ pipeline {
 
     stage('Commit to subversion') {
       steps {
-        sh 'alias svn="docker run -it --rm -v \"$PWD\":\"$PWD\" -w \"$PWD\" -u $(id -u):$(id -g) nbrun/svn-client:latest svn"'
-        sh 'svn co https://plugins.svn.wordpress.org/spiff-3d-product-customizer svn-repo'
+        sh "docker run -it --rm -v \"$PWD\":\"$PWD\" -w \"$PWD\" -u $(id -u):$(id -g) nbrun/svn-client:latest svn co https://plugins.svn.wordpress.org/spiff-3d-product-customizer svn-repo"
         sh 'cd svn-repo'
         sh 'cp ../spiff-connect/* trunk/'
-        sh "svn --username ${SVN_CREDS_USR} --password ${SVN_CREDS_PSW} ci -m \"Version ${VERSION}\""
-        sh "svn cp trunk tags/${VERSION}"
-        sh "svn --username ${SVN_CREDS_USR} --password ${SVN_CREDS_PSW} ci -m \"Tag Version ${VERSION}\""
+        sh "docker run -it --rm -v \"$PWD\":\"$PWD\" -w \"$PWD\" -u $(id -u):$(id -g) nbrun/svn-client:latest svn --username ${SVN_CREDS_USR} --password ${SVN_CREDS_PSW} ci -m \"Version ${VERSION}\""
+        sh "docker run -it --rm -v \"$PWD\":\"$PWD\" -w \"$PWD\" -u $(id -u):$(id -g) nbrun/svn-client:latest svn cp trunk tags/${VERSION}"
+        sh "docker run -it --rm -v \"$PWD\":\"$PWD\" -w \"$PWD\" -u $(id -u):$(id -g) nbrun/svn-client:latest svn --username ${SVN_CREDS_USR} --password ${SVN_CREDS_PSW} ci -m \"Tag Version ${VERSION}\""
       }
     }
   }
