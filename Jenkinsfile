@@ -80,7 +80,7 @@ pipeline {
 
     stage('Commit to subversion') {
       steps {
-        sh 'alias svn=\'docker run -it --rm -v "$PWD":"$PWD" -w "$PWD" -u $(id -u):$(id -g) nbrun/svn-client:latest svn\''
+        sh 'alias svn="docker run -it --rm -v \"$PWD\":\"$PWD\" -w \"$PWD\" -u $(id -u):$(id -g) nbrun/svn-client:latest svn"'
         sh 'svn co https://plugins.svn.wordpress.org/spiff-3d-product-customizer svn-repo'
         sh 'cd svn-repo'
         sh 'cp ../spiff-connect/* trunk/'
