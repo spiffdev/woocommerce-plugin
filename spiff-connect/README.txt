@@ -15,7 +15,7 @@ Robust, Powerful, Feature rich. Used by enterprise business to deliver very larg
 
 **Now available as of October 2020 on Wordpress by popular demand** 
 
-[https://www.youtube.com/watch?v=sGOFG057W2M]
+[youtube https://www.youtube.com/watch?v=sGOFG057W2M]
 
 
 The Spiff 3D Product Customizer plugin allows you to use Spiff3D with WooCommerce.
@@ -124,7 +124,7 @@ All apparel, Shoes, Promotional Products, Homewares, sporting equipment, FMCG (a
 
 ###**Installation Video**
 
-[https://youtu.be/vuhHX2GHyUM]
+[youtube https://youtu.be/vuhHX2GHyUM]
 
 
 ###**Installing the plugin**
