@@ -1,4 +1,4 @@
-=== Spiff 3D Product Customiser ===
+=== Spiff 3D Product Customizer and Product Designer for WooCommerce ===
 Contributors: Spiff3D
 Tested up to: 5.3
 License: GPL3
