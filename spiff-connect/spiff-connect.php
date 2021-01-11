@@ -229,7 +229,7 @@ function spiff_create_cart_item() {
 
 // Get the data associated with a transaction.
 function spiff_get_transaction($transaction_id) {
-    $url = 'https://' . SPIFF_API_BASE . SPIFF_API_TRANSACTIONS_PATH . '/' . $transaction_id;
+    $url = SPIFF_API_BASE . SPIFF_API_TRANSACTIONS_PATH . '/' . $transaction_id;
     $access_key = get_option('spiff_api_key');
     $secret_key = get_option('spiff_api_secret');
     $headers = spiff_request_headers($access_key, $secret_key, '', SPIFF_API_TRANSACTIONS_PATH);
@@ -290,12 +290,8 @@ if (get_option('spiff_show_preview_images_in_cart')) {
 }
 
 function spiff_get_transaction_image($transaction_id) {
-    $url = 'https://' . SPIFF_API_BASE . SPIFF_API_TRANSACTIONS_PATH . '/' . $transaction_id . '/image';
+    $url = SPIFF_API_BASE . SPIFF_API_TRANSACTIONS_PATH . '/' . $transaction_id . '/image';
     $response = wp_remote_get($url, array('redirection' => 0));
-    $response_status = wp_remote_retrieve_response_code($response);
-    if ($response_status !== 302) {
-      return null;
-    }
     $response_location_header = wp_remote_retrieve_header($response, 'location');
     if ($response_location_header === '') {
       return null;
@@ -365,7 +361,7 @@ function spiff_post_order($access_key, $secret_key, $items, $woo_order_id) {
         'orderItems' => $items
     ));
     $headers = spiff_request_headers($access_key, $secret_key, $body, SPIFF_API_ORDERS_PATH);
-    $response = wp_remote_post("https://" . SPIFF_API_BASE . SPIFF_API_ORDERS_PATH, array(
+    $response = wp_remote_post(SPIFF_API_BASE . SPIFF_API_ORDERS_PATH, array(
         'body' => $body,
         'headers' => $headers,
     ));

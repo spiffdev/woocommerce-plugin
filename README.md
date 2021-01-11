@@ -6,8 +6,7 @@ The spiff-connect folder contains all the files of the plugin except for assets 
 
 ## To run locally
 
-* Copy a build of api.js for the appropriate environment into spiff-connect/public/js/.
-* Change the value of SPIFF_API_BASE if you wish to point to an environment other than production.
+* Copy a local build of api.js into spiff-connect/public/js/.
 * Run `docker-compose up`.
 * Visit localhost:8888.
 
