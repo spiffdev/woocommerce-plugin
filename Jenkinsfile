@@ -50,11 +50,9 @@ pipeline {
 
     stage('Write current version for dev build') {
       steps {
-          script {
-            version = simpleSemanticVersion()
-            env.VERSION = version
-            writeFile file: 'VERSION', text: version
-          }
+          version = simpleSemanticVersion()
+          env.VERSION = version
+          writeFile file: 'VERSION', text: version
           sh "awk 'NR==5{print \"Version: ${VERSION}\"}1' spiff-connect/spiff-connect.php > tmp && mv tmp spiff-connect/spiff-connect.php"
       }
     }
