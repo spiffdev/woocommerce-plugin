@@ -48,22 +48,7 @@ pipeline {
       }
     }
 
-    stage('Merge back version bump') {
-      when {
-        equals expected: "master", actual: "${params.branch}"
-      }
-      steps {
-        script {
-          version = simpleSemanticVersion()
-          env.VERSION = version
-          writeFile file: 'VERSION', text: version
-          createFeatureBranch([version: VERSION])
-          mergeBackIn([version: VERSION, credentialsId: 'gh-user'])
-        }
-      }
-    }
-
-    stage('Write version') {
+    stage('Write current version for dev build') {
       steps {
         sh "awk 'NR==5{print \"Version: ${VERSION}\"}1' spiff-connect/spiff-connect.php > tmp && mv tmp spiff-connect/spiff-connect.php"
       }
@@ -78,12 +63,36 @@ pipeline {
       }
     }
 
-    stage('Output prod zip file') {
+    stage('Merge back version bump') {
       when {
         equals expected: "master", actual: "${params.branch}"
       }
       steps {
         input( message: "Deploy production build?" )
+        script {
+          version = simpleSemanticVersion()
+          env.VERSION = version
+          writeFile file: 'VERSION', text: version
+          createFeatureBranch([version: VERSION])
+          mergeBackIn([version: VERSION, credentialsId: 'gh-user'])
+        }
+      }
+    }
+
+    stage('Write new version for prod build') {
+      when {
+        equals expected: "master", actual: "${params.branch}"
+      }
+      steps {
+        sh "awk 'NR==5{print \"Version: ${VERSION}\"}1' spiff-connect/spiff-connect.php > tmp && mv tmp spiff-connect/spiff-connect.php"
+      }
+    }
+
+    stage('Output prod zip file') {
+      when {
+        equals expected: "master", actual: "${params.branch}"
+      }
+      steps {
         sh 'python replace-env-vars.py prod > tmp && mv tmp spiff-connect/spiff-connect.php'
         sh 'docker run --rm curlimages/curl https://assets.spiff.com.au/api.js > spiff-connect/public/js/api.js'
         sh 'docker run -u 1000 -v ${PWD}:/to_zip -w /to_zip --rm kramos/alpine-zip -r spiff-connect.zip spiff-connect'
