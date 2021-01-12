@@ -4,6 +4,11 @@
 
 pipeline {
   agent any
+
+  parameters {
+    string(name: 'branch', defaultValue: '', description: 'Branch to use')
+  }
+
   options {
     skipDefaultCheckout true
   }
@@ -31,6 +36,7 @@ pipeline {
           credentialsId: credentialsId,
           email: 'spiffdev@spiff.com.au',
           name: 'spiffdev',
+          branch: "${params.branch}",
           git_url: git_url
         ])
       }
@@ -43,6 +49,9 @@ pipeline {
     }
 
     stage('Merge back version bump') {
+      when {
+        equals expected: "master", actual: "${params.branch}"
+      }
       steps {
         script {
           version = simpleSemanticVersion()
@@ -70,7 +79,11 @@ pipeline {
     }
 
     stage('Output prod zip file') {
+      when {
+        equals expected: "master", actual: "${params.branch}"
+      }
       steps {
+        input( message: "Deploy production build?" )
         sh 'python replace-env-vars.py prod > tmp && mv tmp spiff-connect/spiff-connect.php'
         sh 'docker run --rm curlimages/curl https://assets.spiff.com.au/api.js > spiff-connect/public/js/api.js'
         sh 'docker run -u 1000 -v ${PWD}:/to_zip -w /to_zip --rm kramos/alpine-zip -r spiff-connect.zip spiff-connect'
@@ -79,8 +92,11 @@ pipeline {
     }
 
     stage('Commit to subversion') {
+      when {
+        equals expected: "master", actual: "${params.branch}"
+      }
       steps {
-      sh './commit-subversion'
+        sh './commit-subversion'
       }
     }
   }
