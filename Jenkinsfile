@@ -50,10 +50,7 @@ pipeline {
 
     stage('Write current version for dev build') {
       steps {
-          version = simpleSemanticVersion()
-          env.VERSION = version
-          writeFile file: 'VERSION', text: version
-          sh "awk 'NR==5{print \"Version: ${VERSION}\"}1' spiff-connect/spiff-connect.php > tmp && mv tmp spiff-connect/spiff-connect.php"
+        sh "awk 'NR==5{print \"Version: ${VERSION}\"}1' spiff-connect/spiff-connect.php > tmp && mv tmp spiff-connect/spiff-connect.php"
       }
     }
 
@@ -79,6 +76,14 @@ pipeline {
           createFeatureBranch([version: VERSION])
           mergeBackIn([version: VERSION, credentialsId: 'gh-user'])
         }
+      }
+    }
+
+    stage('Write new version for prod build') {
+      when {
+        equals expected: "master", actual: "${params.branch}"
+      }
+      steps {
         sh "awk 'NR==5{print \"Version: ${VERSION}\"}1' spiff-connect/spiff-connect.php > tmp && mv tmp spiff-connect/spiff-connect.php"
       }
     }
