@@ -49,9 +49,6 @@ pipeline {
     }
 
     stage('Merge back version bump') {
-      when {
-        equals expected: "master", actual: "${params.branch}"
-      }
       steps {
         script {
           version = simpleSemanticVersion()
