@@ -63,6 +63,13 @@ pipeline {
       }
       steps {
         input( message: "Deploy production build?" )
+        standardCheckOut([
+          credentialsId: credentialsId,
+          email: 'spiffdev@spiff.com.au',
+          name: 'spiffdev',
+          branch: "${params.branch}",
+          git_url: git_url
+        ])
         script {
           version = simpleSemanticVersion()
           env.VERSION = version
@@ -79,7 +86,6 @@ pipeline {
         equals expected: "master", actual: "${params.branch}"
       }
       steps {
-        input( message: "Deploy production build?" )
         sh 'python replace-env-vars.py prod > tmp && mv tmp spiff-connect/spiff-connect.php'
         sh 'docker run --rm curlimages/curl https://assets.spiff.com.au/api.js > spiff-connect/public/js/api.js'
         sh 'docker run -u 1000 -v ${PWD}:/to_zip -w /to_zip --rm kramos/alpine-zip -r spiff-connect.zip spiff-connect'
