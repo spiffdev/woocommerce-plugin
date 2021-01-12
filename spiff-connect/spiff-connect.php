@@ -29,6 +29,7 @@ function spiff_register_admin_settings() {
     register_setting('spiff-settings-group', 'spiff_api_key');
     register_setting('spiff-settings-group', 'spiff_api_secret');
     register_setting('spiff-settings-group', 'spiff_show_customer_selections_in_cart');
+    register_setting('spiff-settings-group', 'spiff_show_preview_images_in_cart');
 }
 
 // Render the HTML for the global settings page.
@@ -64,6 +65,10 @@ function spiff_admin_menu_html() {
             <tr valign="top">
             <th scope="row">Show customer selections in cart</th>
             <td><input type="checkbox" name="spiff_show_customer_selections_in_cart" value="1" <?php echo checked("1", get_option('spiff_show_customer_selections_in_cart')); ?> /></td>
+            </tr>
+            <tr valign="top">
+            <th scope="row">Show preview images in cart</th>
+            <td><input type="checkbox" name="spiff_show_preview_images_in_cart" value="1" <?php echo checked("1", get_option('spiff_show_preview_images_in_cart')); ?> /></td>
             </tr>
         </table>
         <?php submit_button(); ?>
@@ -224,7 +229,7 @@ function spiff_create_cart_item() {
 
 // Get the data associated with a transaction.
 function spiff_get_transaction($transaction_id) {
-    $url = 'https://' . SPIFF_API_BASE . SPIFF_API_TRANSACTIONS_PATH . '/' . $transaction_id;
+    $url = SPIFF_API_BASE . SPIFF_API_TRANSACTIONS_PATH . '/' . $transaction_id;
     $access_key = get_option('spiff_api_key');
     $secret_key = get_option('spiff_api_secret');
     $headers = spiff_request_headers($access_key, $secret_key, '', SPIFF_API_TRANSACTIONS_PATH);
@@ -274,6 +279,35 @@ function spiff_show_metadata_in_cart($cart_data, $cart_item) {
         }
     }
     return $custom_items;
+}
+
+/**
+ * Display preview image in cart.
+ */
+
+if (get_option('spiff_show_preview_images_in_cart')) {
+    add_filter('woocommerce_cart_item_thumbnail', 'spiff_show_preview_image_in_cart', 10, 3);
+}
+
+function spiff_get_transaction_image($transaction_id) {
+    $url = SPIFF_API_BASE . SPIFF_API_TRANSACTIONS_PATH . '/' . $transaction_id . '/image';
+    $response = wp_remote_get($url, array('redirection' => 0));
+    $response_location_header = wp_remote_retrieve_header($response, 'location');
+    if ($response_location_header === '') {
+      return null;
+    }
+    return '<img src="' . $response_location_header . '" alt="preview" />';
+}
+
+function spiff_show_preview_image_in_cart($product_image, $cart_item, $cart_item_key) {
+    if (!array_key_exists('spiff_transaction_id', $cart_item)) {
+      return $product_image;
+    }
+    $preview_image = spiff_get_transaction_image($cart_item['spiff_transaction_id']);
+    if ($preview_image === null) {
+      return $product_image;
+    }
+    return $preview_image;
 }
 
 /**
@@ -327,7 +361,7 @@ function spiff_post_order($access_key, $secret_key, $items, $woo_order_id) {
         'orderItems' => $items
     ));
     $headers = spiff_request_headers($access_key, $secret_key, $body, SPIFF_API_ORDERS_PATH);
-    $response = wp_remote_post("https://" . SPIFF_API_BASE . SPIFF_API_ORDERS_PATH, array(
+    $response = wp_remote_post(SPIFF_API_BASE . SPIFF_API_ORDERS_PATH, array(
         'body' => $body,
         'headers' => $headers,
     ));

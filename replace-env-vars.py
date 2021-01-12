@@ -7,8 +7,8 @@ with open("./spiff-connect/spiff-connect.php") as spiffConnect:
     for line in lines:
         if line.startswith('define("SPIFF_API_BASE"'):
             if (env == 'prod'):
-                print 'define("SPIFF_API_BASE", "api.spiff.com.au");'
+                print 'define("SPIFF_API_BASE", "https://api.spiff.com.au");'
             else:
-                print 'define("SPIFF_API_BASE", "api.app.dev.spiff.com.au");'
+                print 'define("SPIFF_API_BASE", "https://api.app.dev.spiff.com.au");'
         else:
             print line,
