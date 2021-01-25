@@ -121,8 +121,18 @@ function spiff_save_admin_product_fields($post_id) {
 add_action('wp_enqueue_scripts', 'spiff_enqueue_ecommerce_client');
 
 function spiff_enqueue_ecommerce_client() {
-    wp_enqueue_script('spiff-ecommerce-client', plugin_dir_url(__FILE__) . 'public/js/api.js');
-    wp_enqueue_script('spiff-create-design-button', plugin_dir_url(__FILE__) . 'public/js/create-design-button.js');
+    wp_enqueue_script(
+        'spiff-ecommerce-client',
+        plugin_dir_url(__FILE__) . 'public/js/api.js',
+        array(),
+        null
+    );
+    wp_enqueue_script(
+        'spiff-create-design-button',
+        plugin_dir_url(__FILE__) . 'public/js/create-design-button.js',
+        array(),
+        null
+    );
     wp_localize_script('spiff-create-design-button', 'ajax_object', array('ajax_url' => admin_url( 'admin-ajax.php' )));
 }
 
