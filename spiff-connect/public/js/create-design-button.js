@@ -11,6 +11,7 @@ const spiffAppendCreateDesignButton = (wooProductId, integrationProductId, curre
         containers.forEach(container => {
             const button = document.createElement('button');
             button.innerText = "Personalize now";
+            button.className = "test-create-design";
 
             button.onclick = () => {
                 const transaction = new window.Spiff.Transaction({
