@@ -1,6 +1,6 @@
 === Spiff 3D Product Customizer and Product Designer for WooCommerce ===
 Contributors: Spiff3D
-Tested up to: 5.3
+Tested up to: 5.7
 License: GPL3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
