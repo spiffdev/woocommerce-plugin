@@ -3,7 +3,7 @@ const htmlDecode = input => {
     return document.documentElement.textContent;
 };
 
-const spiffAppendCreateDesignButton = (wooProductId, integrationProductId, currencyCode, redirectUrl) => {
+const spiffAppendCreateDesignButton = (wooProductId, integrationProductId, currencyCode, redirectUrl, pageSessionId) => {
     const integrationProduct = new window.Spiff.IntegrationProduct(integrationProductId);
 
     integrationProduct.on('ready', () => {
@@ -17,6 +17,7 @@ const spiffAppendCreateDesignButton = (wooProductId, integrationProductId, curre
                 const transaction = new window.Spiff.Transaction({
                     presentmentCurrency: currencyCode,
                     integrationProduct,
+                    pageSessionId,
                 });
 
                 transaction.on('complete', async result => {
