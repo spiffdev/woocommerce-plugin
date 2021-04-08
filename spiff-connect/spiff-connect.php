@@ -21,6 +21,9 @@ register_activation_hook(__FILE__, 'spiff_activation_hook');
 
 function spiff_activation_hook() {
     add_option('spiff_plugin_was_activated', '1');
+
+    $shop_name = get_bloginfo('name');
+    $email = get_bloginfo('admin_email');
 }
 
 /*
