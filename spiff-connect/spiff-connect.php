@@ -13,6 +13,16 @@ define("SPIFF_API_BASE", getenv("SPIFF_API_BASE"));
 define("SPIFF_API_ORDERS_PATH", "/api/v2/orders");
 define("SPIFF_API_TRANSACTIONS_PATH", "/api/transactions");
 
+/**
+ * Activation hook.
+ */
+
+register_activation_hook(__FILE__, 'spiff_activation_hook');
+
+function spiff_activation_hook() {
+    add_option('spiff_plugin_was_activated', '1');
+}
+
 /*
  * Create admin menu.
  */
