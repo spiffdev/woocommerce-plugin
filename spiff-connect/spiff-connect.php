@@ -8,6 +8,7 @@ License: GPL3
 */
 
 require plugin_dir_path(__FILE__) . 'includes/spiff-connect-requests.php';
+require plugin_dir_path(__FILE__) . 'vendor/aws.phar';
 
 define("SPIFF_API_BASE", getenv("SPIFF_API_BASE"));
 define("SPIFF_API_ORDERS_PATH", "/api/v2/orders");
