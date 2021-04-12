@@ -10,6 +10,7 @@ License: GPL3
 require plugin_dir_path(__FILE__) . 'includes/spiff-connect-requests.php';
 
 define("SPIFF_API_BASE", getenv("SPIFF_API_BASE"));
+define("SPIFF_API_INSTALLS_PATH", "/api/installs");
 define("SPIFF_API_ORDERS_PATH", "/api/v2/orders");
 define("SPIFF_API_TRANSACTIONS_PATH", "/api/transactions");
 
@@ -35,7 +36,20 @@ function spiff_activation_hook() {
       $phone = get_user_meta($admin_id, 'billing_phone', true);
       $first_name = get_user_meta($admin_id, 'first_name', true);
       $last_name = get_user_meta($admin_id, 'last_name', true);
-      error_log("$first_name $last_name");
+
+      $body = json_encode(array(
+          'shopName' => $shop_name,
+          'owner' => "$first_name $last_name",
+          'email' => $email,
+          'phone' => $phone
+      ));
+      $headers = array(
+        'Content-Type' => 'application/json',
+      );
+      wp_remote_post(SPIFF_API_BASE . SPIFF_API_INSTALLS_PATH, array(
+        'body' => $body,
+        'headers' => $headers
+      ));
     }
 }
 
