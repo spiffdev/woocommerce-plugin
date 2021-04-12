@@ -10,8 +10,48 @@ License: GPL3
 require plugin_dir_path(__FILE__) . 'includes/spiff-connect-requests.php';
 
 define("SPIFF_API_BASE", getenv("SPIFF_API_BASE"));
+define("SPIFF_API_INSTALLS_PATH", "/api/installs");
 define("SPIFF_API_ORDERS_PATH", "/api/v2/orders");
 define("SPIFF_API_TRANSACTIONS_PATH", "/api/transactions");
+
+/**
+ * Activation hook.
+ */
+
+register_activation_hook(__FILE__, 'spiff_activation_hook');
+
+function spiff_activation_hook() {
+    $was_activated = get_option('spiff_plugin_was_activated');
+    if ($was_activated) {
+      return; // Only trigger notifcation on the first activation.
+    }
+    add_option('spiff_plugin_was_activated', '1');
+
+    $shop_name = get_bloginfo('name');
+    $admins = get_users(array('role' => 'Administrator'));
+    if (count($admins) > 0) {
+      $admin = $admins[0];
+      $admin_id = $admin->ID;
+      $email = $admin->data->user_email;
+      $phone = get_user_meta($admin_id, 'billing_phone', true);
+      $first_name = get_user_meta($admin_id, 'first_name', true);
+      $last_name = get_user_meta($admin_id, 'last_name', true);
+
+      $body = json_encode(array(
+          'shopName' => $shop_name,
+          'owner' => "$first_name $last_name",
+          'email' => $email,
+          'phone' => $phone
+      ));
+      $headers = array(
+        'Content-Type' => 'application/json',
+      );
+      wp_remote_post(SPIFF_API_BASE . SPIFF_API_INSTALLS_PATH, array(
+        'body' => $body,
+        'headers' => $headers
+      ));
+    }
+}
 
 /*
  * Create admin menu.
