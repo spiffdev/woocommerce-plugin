@@ -26,8 +26,12 @@ function spiff_activation_hook() {
     $admins = get_users(array('role' => 'Administrator'));
     if (count($admins) > 0) {
       $admin = $admins[0];
+      $admin_id = $admin->ID;
       $email = $admin->data->user_email;
-      error_log($email);
+      $phone = get_user_meta($admin_id, 'billing_phone', true);
+      $first_name = get_user_meta($admin_id, 'first_name', true);
+      $last_name = get_user_meta($admin_id, 'last_name', true);
+      error_log("$first_name $last_name");
     }
 }
 
