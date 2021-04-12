@@ -20,6 +20,10 @@ define("SPIFF_API_TRANSACTIONS_PATH", "/api/transactions");
 register_activation_hook(__FILE__, 'spiff_activation_hook');
 
 function spiff_activation_hook() {
+    $was_activated = get_option('spiff_plugin_was_activated');
+    if ($was_activated) {
+      return; // Only trigger notifcation on the first activation.
+    }
     add_option('spiff_plugin_was_activated', '1');
 
     $shop_name = get_bloginfo('name');
