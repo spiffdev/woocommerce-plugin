@@ -38,6 +38,7 @@ function spiff_activation_hook() {
       $last_name = get_user_meta($admin_id, 'last_name', true);
 
       $body = json_encode(array(
+          'type' => 'WooCommerce',
           'shopName' => $shop_name,
           'owner' => "$first_name $last_name",
           'email' => $email,
