@@ -225,13 +225,11 @@ function spiff_append_create_design_button_on_product_page() {
 
 <div class="spiff-button-integration-product-<?php echo $integration_product_id_attr; ?>"></div>
 <script>
-  const pageSessionId = window.Spiff.Analytics.createPageSession();
   window.spiffAppendCreateDesignButton(
     "<?php echo $woo_product_id; ?>",
     "<?php echo $integration_product_id_js; ?>",
     "<?php echo $currency_code; ?>",
     "<?php echo $cart_url; ?>",
-    pageSessionId,
   )
 </script>
 

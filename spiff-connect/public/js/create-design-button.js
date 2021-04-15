@@ -3,10 +3,11 @@ const htmlDecode = input => {
     return document.documentElement.textContent;
 };
 
-const spiffAppendCreateDesignButton = (wooProductId, integrationProductId, currencyCode, redirectUrl, pageSessionId) => {
+const spiffAppendCreateDesignButton = (wooProductId, integrationProductId, currencyCode, redirectUrl) => {
     const integrationProduct = new window.Spiff.IntegrationProduct(integrationProductId);
 
     integrationProduct.on('ready', () => {
+        const pageSessionId = window.Spiff.Analytics.createPageSession();
         const containers = document.querySelectorAll(`.spiff-button-integration-product-${integrationProductId}`);
         containers.forEach(container => {
             const button = document.createElement('button');
