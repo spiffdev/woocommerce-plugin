@@ -8,6 +8,8 @@ Personalize products in 3D or AR. Customization that works. The Spiff Product Cu
 
 == Description ==
 
+Read more about our [3D product customizer](https://spiff3d.com/product-customizer/wordpress-woocommerce/).
+
 ###**A Customizer that increases conversion and reduces your cost of acquisition**
 
 
@@ -146,4 +148,4 @@ All apparel, Shoes, Promotional Products, Homewares, sporting equipment, FMCG (a
     * Enter the ID of the corresponding integration product by clicking copy Integration ID to clipboard from the corresponding product on the integrations page. 
 
 
-If you have any problems contact spiff support [https://spiff3d.com/contact-us/] or visit [https://help.spiff.com.au]
+If you have any problems contact spiff support [https://spiff3d.com/contact-us/](https://spiff3d.com/contact-us/) or visit [https://help.spiff.com.au](https://help.spiff.com.au)
