@@ -27,7 +27,7 @@ function spiff_activation_hook() {
     }
     add_option('spiff_plugin_was_activated', '1');
 
-    $shop_name = get_bloginfo('name');
+    $shop_name = get_home_url();
     $admins = get_users(array('role' => 'Administrator'));
     if (count($admins) > 0) {
       $admin = $admins[0];
