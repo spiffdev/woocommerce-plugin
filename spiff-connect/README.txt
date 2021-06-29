@@ -108,7 +108,7 @@ All apparel, Shoes, Promotional Products, Homewares, sporting equipment, FMCG (a
 
 ###**Activating your Spiff Account**
 
-1. Go to https://app.spiff.com.au and login or sign up for an account
+1. Go to https://hub.spiff.com.au and login or sign up for an account
 
 2. Go to the Partners Drop Down in the Top Nav Bar
 
