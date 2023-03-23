@@ -5,6 +5,7 @@ Python2 script that replaces environment-dependent constants in the PHP files.
 import sys
 
 env = sys.argv[1]
+path = sys.argv[2]
 
 def replaceConstants(file):
     lines = file.readlines()
@@ -17,9 +18,5 @@ def replaceConstants(file):
         else:
             print line,
 
-
-with open("./spiff-connect/spiff-connect.php") as file:
-    replaceConstants(file)
-
-with open("./spiff-connect/includes/spiff-connect-requests.php") as file:
+with open(path) as file:
     replaceConstants(file)
