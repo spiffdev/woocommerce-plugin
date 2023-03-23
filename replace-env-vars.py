@@ -10,7 +10,7 @@ path = sys.argv[2]
 def replaceConstants(file):
     lines = file.readlines()
     for line in lines:
-        if line.startswith('define("SPIFF_API_BASE"'):
+        if line.find('define("SPIFF_API_BASE"') > -1:
             if (env == 'prod'):
                 print 'define("SPIFF_API_BASE", "https://api.spiff.com.au");'
             else:

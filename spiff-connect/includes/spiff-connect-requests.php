@@ -4,7 +4,9 @@
  * Functions used to craft requests to Spiff.
  */
 
-define("SPIFF_API_BASE", getenv("SPIFF_API_BASE"));
+if (!defined("SPIFF_API_BASE")) {
+    define("SPIFF_API_BASE", getenv("SPIFF_API_BASE"));
+}
 
 function spiff_hex_to_base64($hex) {
     $return = "";
