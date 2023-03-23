@@ -32,6 +32,19 @@ function spiff_request_headers($access_key, $secret_key, $body, $path) {
     );
 }
 
-function spiff_graphql_query() {
-
+function spiff_graphql_query($query, $variables) {
+    $url = SPIFF_API_BASE . '/graphql';
+    $headers = array(
+        'Content-Type' => 'application/json',
+    );
+    $request_body = json_encode(array(
+        'query' => $query,
+        'variables' => $variables,
+    ));
+    $response = wp_remote_post($url, array(
+        'body' => $request_body,
+        'headers' => $headers,
+    ));
+    $response_body = wp_remote_retrieve_body($response);
+    return json_decode($response_body);
 }
