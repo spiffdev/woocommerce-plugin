@@ -4,6 +4,8 @@
  * Functions used to craft requests to Spiff.
  */
 
+define("SPIFF_API_BASE", getenv("SPIFF_API_BASE"));
+
 function spiff_hex_to_base64($hex) {
     $return = "";
     foreach (str_split($hex, 2) as $pair) {
@@ -28,4 +30,8 @@ function spiff_request_headers($access_key, $secret_key, $body, $path) {
         'Content-Type' => $content_type,
         'Date' => $date_string,
     );
+}
+
+function spiff_graphql_query() {
+
 }
