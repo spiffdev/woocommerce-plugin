@@ -71,6 +71,13 @@ function spiff_register_admin_settings() {
     register_setting('spiff-settings-group', 'spiff_api_secret');
     register_setting('spiff-settings-group', 'spiff_show_customer_selections_in_cart');
     register_setting('spiff-settings-group', 'spiff_show_preview_images_in_cart');
+    register_setting('spiff-settings-group', 'spiff_non_bulk_text');
+    register_setting('spiff-settings-group', 'spiff_bulk_text');
+    register_setting('spiff-settings-group', 'spiff_font_size');
+    register_setting('spiff-settings-group', 'spiff_font_weight');
+    register_setting('spiff-settings-group', 'spiff_text_color');
+    register_setting('spiff-settings-group', 'spiff_background_color');
+    register_setting('spiff-settings-group', 'spiff_width');
 }
 
 // Render the HTML for the global settings page.
@@ -112,12 +119,43 @@ function spiff_admin_menu_html() {
             <td><input type="checkbox" name="spiff_show_preview_images_in_cart" value="1" <?php echo checked("1", get_option('spiff_show_preview_images_in_cart')); ?> /></td>
             </tr>
         </table>
+
+        <h2>Global Button Styles</h2>
+
+        <table class="form-table">
+            <tr valign="top">
+                <th scope="row">Non Bulk Button Text</th>
+                <td><input autocomplete=off type="text" name="spiff_non_bulk_text" value="<?php echo esc_attr(get_option('spiff_non_bulk_text')); ?>" /></td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">Non Bulk Button Text</th>
+                <td><input autocomplete=off type="text" name="spiff_non_bulk_text" value="<?php echo esc_attr(get_option('spiff_non_bulk_text')); ?>" /></td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">Font Size</th>
+                <td><input autocomplete=off type="text" name="spiff_font_size" value="<?php echo esc_attr(get_option('spiff_font_size')); ?>px" /></td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">Font Weight</th>
+                <td><input autocomplete=off type="text" name="spiff_font_weight" value="<?php echo esc_attr(get_option('spiff_font_weight')); ?>" /></td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">Text Color</th>
+                <td><input autocomplete=off type="text" name="spiff_text_color" value="#<?php echo esc_attr(get_option('spiff_text_color')); ?>" /></td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">Background Color</th>
+                <td><input autocomplete=off type="text" name="spiff_background_color" value="#<?php echo esc_attr(get_option('spiff_background_color')); ?>" /></td>
+            </tr>spiff_background_color
+            <tr valign="top">
+                <th scope="row">Width</th>
+                <td><input autocomplete=off type="text" name="spiff_width" value="<?php echo esc_attr(get_option('spiff_width')); ?>%" /></td>
+            </tr>
+        </table>
         <?php submit_button(); ?>
     </form>
 </div>
-
 <?php
-
 }
 
 /**
@@ -230,11 +268,27 @@ function spiff_append_create_design_button_on_product_page() {
     "<?php echo $integration_product_id_js; ?>",
     "<?php echo $currency_code; ?>",
     "<?php echo $cart_url; ?>",
+    "<?php echo esc_attr(get_option('spiff_non_bulk_text')); ?>",
+    "<?php echo esc_attr(get_option('spiff_font_size')); ?>",
+    "<?php echo esc_attr(get_option('spiff_font_weight')); ?>",
+    "<?php echo esc_attr(get_option('spiff_text_color')); ?>",
+    "<?php echo esc_attr(get_option('spiff_background_color')); ?>",
+    "<?php echo esc_attr(get_option('spiff_width')); ?>",
+  )
+</script>
+
+<div class="spiff-button-bulk-integration-product-<?php echo $integration_product_id_attr; ?>"></div>
+<script>
+  window.spiffAppendCreateDesignButtonBulk(
+    "<?php echo $woo_product_id; ?>",
+    "<?php echo $integration_product_id_js; ?>",
+    "<?php echo $currency_code; ?>",
+    "<?php echo $cart_url; ?>",
+    "<?php echo esc_attr(get_option('spiff_bulk_text')); ?>",
   )
 </script>
 
 <?php
-
 }
 
 /**
