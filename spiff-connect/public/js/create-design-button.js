@@ -64,7 +64,7 @@ const spiffAppendCreateDesignButton = (wooProductId, integrationProductId, curre
     integrationProduct.confirmActive();
 };
 
-const spiffAppendCreateDesignButtonBulk = (wooProductId, integrationProductId, currencyCode, redirectUrl, buttonStyle) => {
+const spiffAppendCreateDesignButtonBulk = (wooProductId, integrationProductId, currencyCode, redirectUrl, text, size, weight, textColor, backgroundColor, width) => {
     const integrationProduct = new window.Spiff.IntegrationProduct(integrationProductId);
 
     integrationProduct.on('ready', () => {
@@ -73,13 +73,12 @@ const spiffAppendCreateDesignButtonBulk = (wooProductId, integrationProductId, c
         containers.forEach(container => {
             const button = document.createElement('button');
             if (buttonStyles) {
-                button.innerText = buttonStyle.bulkText;
-                button.fontSize = buttonStyle.fontSize;
-                button.background = buttonStyle.backgroundColor;
-                button.color = buttonStyle.textColor;
-                button.borderRadius = buttonStyle.borderRadius;
-                button.fontWeight = buttonStyle.fontWeight;
-                button.width = buttonStyle.width;
+                button.innerText = text;
+                button.fontSize = size;
+                button.background = backgroundColor;
+                button.color = textColor;
+                button.fontWeight = weight;
+                button.width = width;
             }
             else {
                 // Default
