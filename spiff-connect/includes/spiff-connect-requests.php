@@ -4,10 +4,6 @@
  * Functions used to craft requests to Spiff.
  */
 
-if (!defined("SPIFF_API_BASE")) {
-    define("SPIFF_API_BASE", getenv("SPIFF_API_BASE"));
-}
-
 function spiff_hex_to_base64($hex) {
     $return = "";
     foreach (str_split($hex, 2) as $pair) {
@@ -32,21 +28,4 @@ function spiff_request_headers($access_key, $secret_key, $body, $path) {
         'Content-Type' => $content_type,
         'Date' => $date_string,
     );
-}
-
-function spiff_graphql_query($query, $variables) {
-    $url = SPIFF_API_BASE . '/graphql';
-    $headers = array(
-        'Content-Type' => 'application/json',
-    );
-    $request_body = json_encode(array(
-        'query' => $query,
-        'variables' => $variables,
-    ));
-    $response = wp_remote_post($url, array(
-        'body' => $request_body,
-        'headers' => $headers,
-    ));
-    $response_body = wp_remote_retrieve_body($response);
-    return json_decode($response_body);
 }

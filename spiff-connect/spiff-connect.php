@@ -9,11 +9,10 @@ License: GPL3
 
 require plugin_dir_path(__FILE__) . 'includes/spiff-connect-requests.php';
 
-if (!defined("SPIFF_API_BASE")) {
-    define("SPIFF_API_BASE", getenv("SPIFF_API_BASE"));
-}
+define("SPIFF_API_BASE", getenv("SPIFF_API_BASE"));
 define("SPIFF_API_INSTALLS_PATH", "/api/installs");
 define("SPIFF_API_ORDERS_PATH", "/api/v2/orders");
+define("SPIFF_API_TRANSACTIONS_PATH", "/api/transactions");
 
 /**
  * Activation hook.
@@ -271,7 +270,7 @@ function spiff_create_cart_item() {
         if (!$transaction) {
             error_log('Failed to retrieve transaction ' . $transaction_id);
         } else {
-            $price_in_subunits = $transaction->product->basePrice + $transaction->priceModifierTotal;
+            $price_in_subunits = $transaction->data->baseCost + $transaction->data->optionsCost;
             $metadata['spiff_item_price'] = floatval($price_in_subunits / ( 10 ** wc_get_price_decimals()));
             $woocommerce->cart->add_to_cart($woo_product_id, 1, '', '', $metadata);
         }
@@ -281,11 +280,19 @@ function spiff_create_cart_item() {
 
 // Get the data associated with a transaction.
 function spiff_get_transaction($transaction_id) {
-    $response = spiff_graphql_query(
-        'query GetTransaction($transactionId: String!) { transactions(ids: [$transactionId]) { priceModifierTotal previewImageLink product { basePrice } } }',
-        array('transactionId' => $transaction_id)
-    );
-    return $response->data->transactions[0];
+    $url = SPIFF_API_BASE . SPIFF_API_TRANSACTIONS_PATH . '/' . $transaction_id;
+    $access_key = get_option('spiff_api_key');
+    $secret_key = get_option('spiff_api_secret');
+    $headers = spiff_request_headers($access_key, $secret_key, '', SPIFF_API_TRANSACTIONS_PATH);
+    $response = wp_remote_get($url);
+    $response_status = wp_remote_retrieve_response_code($response);
+    if ($response_status !== 200) {
+        error_log('Response status: ' . $response_status);
+        return null;
+    } else {
+        $body = wp_remote_retrieve_body($response);
+        return json_decode($body);
+    }
 }
 
 
@@ -334,9 +341,13 @@ if (get_option('spiff_show_preview_images_in_cart')) {
 }
 
 function spiff_get_transaction_image($transaction_id) {
-    $transaction = spiff_get_transaction($transaction_id);
-    $url = $transaction->previewImageLink;
-    return '<img src="' . $url . '" alt="preview" />';
+    $url = SPIFF_API_BASE . SPIFF_API_TRANSACTIONS_PATH . '/' . $transaction_id . '/image';
+    $response = wp_remote_get($url, array('redirection' => 0));
+    $response_location_header = wp_remote_retrieve_header($response, 'location');
+    if ($response_location_header === '') {
+      return null;
+    }
+    return '<img src="' . $response_location_header . '" alt="preview" />';
 }
 
 function spiff_show_preview_image_in_cart($product_image, $cart_item, $cart_item_key) {
