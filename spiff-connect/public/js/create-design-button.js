@@ -3,36 +3,23 @@ const htmlDecode = input => {
     return document.documentElement.textContent;
 };
 
-const spiffAppendCreateDesignButton = (wooProductId, integrationProductId, currencyCode, redirectUrl, text, size, weight, textColor, backgroundColor, width) => {
+const spiffAppendCreateDesignButton = (wooProductId, integrationProductId, currencyCode, redirectUrl, text, size, weight, textColor, backgroundColor, width, height) => {
     const integrationProduct = new window.Spiff.IntegrationProduct(integrationProductId);
 
     integrationProduct.on('ready', () => {
-        const pageSessionId = window.Spiff.Analytics.createPageSession();
         const containers = document.querySelectorAll(`.spiff-button-integration-product-${integrationProductId}`);
         containers.forEach(container => {
             const button = document.createElement('button');
-            if (buttonStyles) {
-                button.innerText = text;
-                button.fontSize = size;
-                button.background = backgroundColor;
-                button.color = textColor;
-                button.fontWeight = weight;
-                button.width = width;
-            }
-            else {
-                // Default
-                button.innerText = "Personalize now";
-            }
 
-            button.border = "none";
-            button.cursor = "pointer";
+            button.innerText = text;
+            button.style = `font-size: ${size}; background: ${backgroundColor}; color: ${textColor}; font-weight: ${weight}; width: ${width}; height: ${height}; cursor: pointer; border: none;`;
+
             button.className = "test-create-design";
             
             button.onclick = () => {
                 const transaction = new window.Spiff.Transaction({
                     presentmentCurrency: currencyCode,
-                    integrationProduct,
-                    pageSessionId,
+                    integrationProduct
                 });
 
                 transaction.on('complete', async result => {
@@ -64,36 +51,23 @@ const spiffAppendCreateDesignButton = (wooProductId, integrationProductId, curre
     integrationProduct.confirmActive();
 };
 
-const spiffAppendCreateDesignButtonBulk = (wooProductId, integrationProductId, currencyCode, redirectUrl, text, size, weight, textColor, backgroundColor, width) => {
+const spiffAppendCreateDesignButtonBulk = (wooProductId, integrationProductId, currencyCode, redirectUrl, text, size, weight, textColor, backgroundColor, width, height) => {
     const integrationProduct = new window.Spiff.IntegrationProduct(integrationProductId);
 
     integrationProduct.on('ready', () => {
-        const pageSessionId = window.Spiff.Analytics.createPageSession();
         const containers = document.querySelectorAll(`.spiff-button-bulk-integration-product-${integrationProductId}`);
         containers.forEach(container => {
             const button = document.createElement('button');
-            if (buttonStyles) {
-                button.innerText = text;
-                button.fontSize = size;
-                button.background = backgroundColor;
-                button.color = textColor;
-                button.fontWeight = weight;
-                button.width = width;
-            }
-            else {
-                // Default
-                button.innerText = "Personalize now";
-            }
+
+            button.innerText = text;
+            button.style = `font-size: ${size}; background: ${backgroundColor}; color: ${textColor}; font-weight: ${weight}; width: ${width}; height: ${height}; cursor: pointer; border: none;`;
             
-            button.border = "none";
-            button.cursor = "pointer";
             button.className = "test-create-design";
 
             button.onclick = () => {
                 const transaction = new window.Spiff.Transaction({
                     presentmentCurrency: currencyCode,
                     integrationProduct,
-                    pageSessionId,
                     bulk: true
                 });
 
