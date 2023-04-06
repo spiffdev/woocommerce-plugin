@@ -279,6 +279,18 @@ function spiff_append_create_design_button_on_product_page() {
     $integration_product_id_attr = esc_attr($product->get_meta('spiff_integration_product_id'));
     $currency_code = esc_js(get_woocommerce_currency());
     $cart_url = esc_js(wc_get_cart_url());
+    $bulk = $product->get_meta('spiff_bulk_enabled');
+    $button_config = json_encode(array(
+        'nonBulkText' =>  esc_attr(get_option('spiff_non_bulk_text')),
+        'bulkText' => esc_attr(get_option('spiff_bulk_text')),
+        'size' => esc_attr(get_option('spiff_font_size')),
+        'weight' => esc_attr(get_option('spiff_font_weight')),
+        'textColor' => esc_attr(get_option('spiff_text_color')),
+        'backgroundColor' =>  esc_attr(get_option('spiff_background_color')),
+        'width' => esc_attr(get_option('spiff_width')),
+        'height' => esc_attr(get_option('spiff_height'))
+    ));
+
 
     if ($product->get_meta('spiff_enabled') === 'yes') {
         ?>
@@ -289,13 +301,7 @@ function spiff_append_create_design_button_on_product_page() {
                 "<?php echo $integration_product_id_js; ?>",
                 "<?php echo $currency_code; ?>",
                 "<?php echo $cart_url; ?>",
-                "<?php echo esc_attr(get_option('spiff_non_bulk_text')); ?>",
-                "<?php echo esc_attr(get_option('spiff_font_size')); ?>",
-                "<?php echo esc_attr(get_option('spiff_font_weight')); ?>",
-                "<?php echo esc_attr(get_option('spiff_text_color')); ?>",
-                "<?php echo esc_attr(get_option('spiff_background_color')); ?>",
-                "<?php echo esc_attr(get_option('spiff_width')); ?>",
-                "<?php echo esc_attr(get_option('spiff_height')); ?>",
+                <?php echo $button_config; ?>
             )
             </script>
         <?php
@@ -310,13 +316,7 @@ function spiff_append_create_design_button_on_product_page() {
                 "<?php echo $integration_product_id_js; ?>",
                 "<?php echo $currency_code; ?>",
                 "<?php echo $cart_url; ?>",
-                "<?php echo esc_attr(get_option('spiff_bulk_text')); ?>",
-                "<?php echo esc_attr(get_option('spiff_font_size')); ?>",
-                "<?php echo esc_attr(get_option('spiff_font_weight')); ?>",
-                "<?php echo esc_attr(get_option('spiff_text_color')); ?>",
-                "<?php echo esc_attr(get_option('spiff_background_color')); ?>",
-                "<?php echo esc_attr(get_option('spiff_width')); ?>",
-                "<?php echo esc_attr(get_option('spiff_height')); ?>",
+                <?php echo $button_config; ?>
             )
             </script>
         <?php
