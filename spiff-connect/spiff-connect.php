@@ -71,20 +71,26 @@ function spiff_register_admin_settings() {
     register_setting('spiff-settings-group', 'spiff_api_secret');
     register_setting('spiff-settings-group', 'spiff_show_customer_selections_in_cart');
     register_setting('spiff-settings-group', 'spiff_show_preview_images_in_cart');
+    register_setting('spiff-settings-group', 'spiff_non_bulk_text');
+    register_setting('spiff-settings-group', 'spiff_bulk_text');
+    register_setting('spiff-settings-group', 'spiff_font_size');
+    register_setting('spiff-settings-group', 'spiff_font_weight');
+    register_setting('spiff-settings-group', 'spiff_text_color');
+    register_setting('spiff-settings-group', 'spiff_background_color');
+    register_setting('spiff-settings-group', 'spiff_width');
+    register_setting('spiff-settings-group', 'spiff_height');
 }
 
 // Render the HTML for the global settings page.
 function spiff_admin_menu_html() {
-
 ?>
 
-<div class="wrap">
-    <h1>Spiff Connect</h1>
-
+<div style="background-color: #fff;border-left: 4px solid #da1c5c;padding: 45px 20px 20px 30px;position: relative;overflow: hidden; max-width: 1200px; margin-top: 20px;">
+    <img style="width:200px;" src="<?php echo plugins_url("assets/spiff_logo.png",__FILE__) ; ?>">
     <form autocomplete="off" method="post" action="options.php">
-        <h2>Integration Details</h1>
-        <p>Enter your integration's access key and secret here.</p>
-        <p>Your integration's key and secret may be found on your integration's page in the Spiff Hub.</p>
+        <h2 style="font-size: 24px;line-height: 29px;position: relative;">Integration Details</h2>
+        <p style="font-size: 16px; position: relative;">Enter your integration's access key and secret here.</p>
+        <p style="font-size: 16px;margin-bottom: 30px;position: relative;">Your integration's key and secret may be found on your integration's page in the Spiff Hub.</p>
 
         <?php settings_fields('spiff-settings-group'); ?>
         <?php do_settings_sections('spiff-settings-group'); ?>
@@ -100,7 +106,7 @@ function spiff_admin_menu_html() {
             </tr>
         </table>
 
-        <h2>Settings</h2>
+        <h2 style="font-size: 24px;line-height: 29px;position: relative;">Settings</h2>
 
         <table class="form-table">
             <tr valign="top">
@@ -112,12 +118,57 @@ function spiff_admin_menu_html() {
             <td><input type="checkbox" name="spiff_show_preview_images_in_cart" value="1" <?php echo checked("1", get_option('spiff_show_preview_images_in_cart')); ?> /></td>
             </tr>
         </table>
-        <?php submit_button(); ?>
+
+        <h2 style="font-size: 24px;line-height: 29px;position: relative;">Global Button Styles</h2>
+
+        <table class="form-table">
+            <tr valign="top">
+                <th scope="row">Non Bulk Button Text</th>
+                <td><input autocomplete=off type="text" placeholder="Personalize One" name="spiff_non_bulk_text" value="<?php echo esc_attr(get_option('spiff_non_bulk_text')); ?>" /></td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">Bulk Button Text</th>
+                <td><input autocomplete=off type="text" placeholder="Personalize Bulk" name="spiff_bulk_text" value="<?php echo esc_attr(get_option('spiff_bulk_text')); ?>" /></td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">Font Size</th>
+                <td><input autocomplete=off placeholder="20px" type="text" name="spiff_font_size" value="<?php echo esc_attr(get_option('spiff_font_size')); ?>" /></td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">Font Weight</th>
+                <td><input autocomplete=off placeholder="700" type="text" name="spiff_font_weight" value="<?php echo esc_attr(get_option('spiff_font_weight')); ?>" /></td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">Text Color</th>
+                <td><input autocomplete=off placeholder="#fff" type="text" name="spiff_text_color" value="<?php echo esc_attr(get_option('spiff_text_color')); ?>" /></td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">Background Color</th>
+                <td><input autocomplete=off placeholder="#da1c5c" type="text" name="spiff_background_color" value="<?php echo esc_attr(get_option('spiff_background_color')); ?>" /></td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">Width</th>
+                <td><input autocomplete=off placeholder="100%" type="text" name="spiff_width" value="<?php echo esc_attr(get_option('spiff_width')); ?>" /></td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">Height</th>
+                <td><input autocomplete=off placeholder="50px" type="text" name="spiff_height" value="<?php echo esc_attr(get_option('spiff_height')); ?>" /></td>
+            </tr>
+        </table>
+
+        <p style="display:inline-block;">
+            <button class="button button-primary" style="background-color: #2271b1; text-shadow: none; text-decoration: none; border-color: #2271b1; color: #fff" type="submit">
+                Save Changes
+            </button>
+        </p>  
+        <p style="display:inline-block;">
+            <a class="button button-primary" style="margin-left: 10px; background-color: #da1c5c; text-shadow: none; text-decoration: none; border-color: #da1c5c; color: #fff" href="https://hub.spiff.com.au/#/login" target="_blank">
+                Spiff Hub
+            </a>
+        </p>
     </form>
 </div>
-
 <?php
-
 }
 
 /**
@@ -130,8 +181,14 @@ add_action('woocommerce_product_options_general_product_data', 'spiff_create_adm
 function spiff_create_admin_product_fields() {
     woocommerce_wp_checkbox( array(
       'id' => 'spiff_enabled',
-      'label' => 'Enable Spiff',
+      'label' => 'Enable Non Bulk Button',
     ));
+
+    woocommerce_wp_checkbox( array(
+        'id' => 'spiff_bulk_enabled',
+        'label' => 'Enable Bulk Button',
+      ));
+
     woocommerce_wp_text_input(array(
       'desc_tip' => true,
       'description' => 'To get this ID, find this product on your integration page in the Spiff Hub.',
@@ -147,8 +204,9 @@ function spiff_save_admin_product_fields($post_id) {
     $product = wc_get_product($post_id);
 
     $enabled = isset($_POST['spiff_enabled']) && rest_sanitize_boolean($_POST['spiff_enabled']);
+    $bulk_enabled = isset($_POST['spiff_bulk_enabled']) && rest_sanitize_boolean($_POST['spiff_bulk_enabled']);
     $product->update_meta_data('spiff_enabled', $enabled ? 'yes' : 'no');
-
+    $product->update_meta_data('spiff_bulk_enabled', $bulk_enabled ? 'yes' : 'no');
     $integration_product_id = sanitize_text_field($_POST['spiff_integration_product_id']);
     $product->update_meta_data('spiff_integration_product_id', $integration_product_id);
 
@@ -185,7 +243,7 @@ add_filter('woocommerce_loop_add_to_cart_link', 'spiff_replace_default_button_on
 
 function spiff_replace_default_button_on_product_list($button, $product) {
     // Don't replace default add to cart button unless Spiff is enabled for that product.
-    if ($product->get_meta('spiff_enabled') === 'yes') {
+    if ($product->get_meta('spiff_enabled') === 'yes' || $product->get_meta('spiff_bulk_enabled') === 'yes' ) {
         $decoded = html_entity_decode($button);
         $xml = simplexml_load_string($decoded);
         $xml->attributes()->class = str_replace('ajax_add_to_cart', '', $xml->attributes()->class);
@@ -207,7 +265,7 @@ add_action('woocommerce_single_product_summary', 'spiff_replace_default_element_
 function spiff_replace_default_element_on_product_page() {
     global $product;
     // Don't replace default add to cart button unless Spiff is enabled for that product.
-    if ($product->get_meta('spiff_enabled') === 'yes') {
+    if ($product->get_meta('spiff_enabled') === 'yes' || $product->get_meta('spiff_bulk_enabled') === 'yes') {
         remove_action('woocommerce_single_product_summary', 'woocommerce_template_single_add_to_cart', 30);
         add_action('woocommerce_single_product_summary', 'spiff_append_create_design_button_on_product_page', 35);
     }
@@ -221,20 +279,48 @@ function spiff_append_create_design_button_on_product_page() {
     $integration_product_id_attr = esc_attr($product->get_meta('spiff_integration_product_id'));
     $currency_code = esc_js(get_woocommerce_currency());
     $cart_url = esc_js(wc_get_cart_url());
-?>
+    $bulk = $product->get_meta('spiff_bulk_enabled');
+    $button_config = json_encode(array(
+        'nonBulkText' =>  esc_attr(get_option('spiff_non_bulk_text')),
+        'bulkText' => esc_attr(get_option('spiff_bulk_text')),
+        'size' => esc_attr(get_option('spiff_font_size')),
+        'weight' => esc_attr(get_option('spiff_font_weight')),
+        'textColor' => esc_attr(get_option('spiff_text_color')),
+        'backgroundColor' =>  esc_attr(get_option('spiff_background_color')),
+        'width' => esc_attr(get_option('spiff_width')),
+        'height' => esc_attr(get_option('spiff_height'))
+    ));
 
-<div class="spiff-button-integration-product-<?php echo $integration_product_id_attr; ?>"></div>
-<script>
-  window.spiffAppendCreateDesignButton(
-    "<?php echo $woo_product_id; ?>",
-    "<?php echo $integration_product_id_js; ?>",
-    "<?php echo $currency_code; ?>",
-    "<?php echo $cart_url; ?>",
-  )
-</script>
 
-<?php
+    if ($product->get_meta('spiff_enabled') === 'yes') {
+        ?>
+            <div class="spiff-button-integration-product-<?php echo $integration_product_id_attr; ?>"></div>
+            <script>
+            window.spiffAppendCreateDesignButton(
+                "<?php echo $woo_product_id; ?>",
+                "<?php echo $integration_product_id_js; ?>",
+                "<?php echo $currency_code; ?>",
+                "<?php echo $cart_url; ?>",
+                <?php echo $button_config; ?>
+            )
+            </script>
+        <?php
+    }
 
+    if ($product->get_meta('spiff_bulk_enabled') === 'yes') {
+        ?>
+            <div class="spiff-button-bulk-integration-product-<?php echo $integration_product_id_attr; ?>"></div>
+            <script>
+            window.spiffAppendCreateDesignButtonBulk(
+                "<?php echo $woo_product_id; ?>",
+                "<?php echo $integration_product_id_js; ?>",
+                "<?php echo $currency_code; ?>",
+                "<?php echo $cart_url; ?>",
+                <?php echo $button_config; ?>
+            )
+            </script>
+        <?php
+    }
 }
 
 /**
@@ -270,7 +356,7 @@ function spiff_create_cart_item() {
         if (!$transaction) {
             error_log('Failed to retrieve transaction ' . $transaction_id);
         } else {
-            $price_in_subunits = $transaction->data->baseCost + $transaction->data->optionsCost;
+            $price_in_subunits = $transaction->product->basePrice + $transaction->priceModifierTotal;
             $metadata['spiff_item_price'] = floatval($price_in_subunits / ( 10 ** wc_get_price_decimals()));
             $woocommerce->cart->add_to_cart($woo_product_id, 1, '', '', $metadata);
         }
