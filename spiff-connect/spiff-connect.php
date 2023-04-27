@@ -86,6 +86,13 @@ function spiff_admin_menu_html() {
 ?>
 
 <div style="background-color: #fff;border-left: 4px solid #da1c5c;padding: 45px 20px 20px 30px;position: relative;overflow: hidden; max-width: 1200px; margin-top: 20px;">
+    <style>
+        input::placeholder {
+            opacity: 0.5;
+            color: #3399ff;
+            font-style: italic;
+        }
+    </style>
     <img style="width:200px;" src="<?php echo plugins_url("assets/spiff_logo.png",__FILE__) ; ?>">
     <form autocomplete="off" method="post" action="options.php">
         <h2 style="font-size: 24px;line-height: 29px;position: relative;">Integration Details</h2>
@@ -124,35 +131,35 @@ function spiff_admin_menu_html() {
         <table class="form-table">
             <tr valign="top">
                 <th scope="row">Non Bulk Button Text</th>
-                <td><input autocomplete=off type="text" placeholder="Personalize One" name="spiff_non_bulk_text" value="<?php echo esc_attr(get_option('spiff_non_bulk_text')); ?>" /></td>
+                <td><input autocomplete=off type="text" placeholder="Personalize One" name="spiff_non_bulk_text" value="<?php echo esc_attr(get_option('spiff_non_bulk_text') ?: "Personalize One"); ?>" /></td>
             </tr>
             <tr valign="top">
                 <th scope="row">Bulk Button Text</th>
-                <td><input autocomplete=off type="text" placeholder="Personalize Bulk" name="spiff_bulk_text" value="<?php echo esc_attr(get_option('spiff_bulk_text')); ?>" /></td>
+                <td><input autocomplete=off type="text" placeholder="Personalize Bulk" name="spiff_bulk_text" value="<?php echo esc_attr(get_option('spiff_bulk_text') ?: "Personalize Bulk"); ?>" /></td>
             </tr>
             <tr valign="top">
                 <th scope="row">Font Size</th>
-                <td><input autocomplete=off placeholder="20px" type="text" name="spiff_font_size" value="<?php echo esc_attr(get_option('spiff_font_size')); ?>" /></td>
+                <td><input autocomplete=off placeholder="20px" type="text" name="spiff_font_size" value="<?php echo esc_attr(get_option('spiff_font_size') ?: "20px"); ?>" /></td>
             </tr>
             <tr valign="top">
                 <th scope="row">Font Weight</th>
-                <td><input autocomplete=off placeholder="700" type="text" name="spiff_font_weight" value="<?php echo esc_attr(get_option('spiff_font_weight')); ?>" /></td>
+                <td><input autocomplete=off placeholder="700" type="text" name="spiff_font_weight" value="<?php echo esc_attr(get_option('spiff_font_weight') ?: "700"); ?>" /></td>
             </tr>
             <tr valign="top">
                 <th scope="row">Text Color</th>
-                <td><input autocomplete=off placeholder="#fff" type="text" name="spiff_text_color" value="<?php echo esc_attr(get_option('spiff_text_color')); ?>" /></td>
+                <td><input autocomplete=off placeholder="#fff" type="text" name="spiff_text_color" value="<?php echo esc_attr(get_option('spiff_text_color') ?: "#fff"); ?>" /></td>
             </tr>
             <tr valign="top">
                 <th scope="row">Background Color</th>
-                <td><input autocomplete=off placeholder="#da1c5c" type="text" name="spiff_background_color" value="<?php echo esc_attr(get_option('spiff_background_color')); ?>" /></td>
+                <td><input autocomplete=off placeholder="#da1c5c" type="text" name="spiff_background_color" value="<?php echo esc_attr(get_option('spiff_background_color') ?: "#da1c5c"); ?>" /></td>
             </tr>
             <tr valign="top">
                 <th scope="row">Width</th>
-                <td><input autocomplete=off placeholder="100%" type="text" name="spiff_width" value="<?php echo esc_attr(get_option('spiff_width')); ?>" /></td>
+                <td><input autocomplete=off placeholder="100%" type="text" name="spiff_width" value="<?php echo esc_attr(get_option('spiff_width') ?: "100%"); ?>" /></td>
             </tr>
             <tr valign="top">
                 <th scope="row">Height</th>
-                <td><input autocomplete=off placeholder="50px" type="text" name="spiff_height" value="<?php echo esc_attr(get_option('spiff_height')); ?>" /></td>
+                <td><input autocomplete=off placeholder="50px" type="text" name="spiff_height" value="<?php echo esc_attr(get_option('spiff_height') ?: "50px"); ?>" /></td>
             </tr>
         </table>
 
@@ -281,14 +288,14 @@ function spiff_append_create_design_button_on_product_page() {
     $cart_url = esc_js(wc_get_cart_url());
     $bulk = $product->get_meta('spiff_bulk_enabled');
     $button_config = json_encode(array(
-        'nonBulkText' =>  esc_attr(get_option('spiff_non_bulk_text')),
-        'bulkText' => esc_attr(get_option('spiff_bulk_text')),
-        'size' => esc_attr(get_option('spiff_font_size')),
-        'weight' => esc_attr(get_option('spiff_font_weight')),
-        'textColor' => esc_attr(get_option('spiff_text_color')),
-        'backgroundColor' =>  esc_attr(get_option('spiff_background_color')),
-        'width' => esc_attr(get_option('spiff_width')),
-        'height' => esc_attr(get_option('spiff_height'))
+        'nonBulkText' =>  esc_attr(get_option('spiff_non_bulk_text') ?: "Personalize One"),
+        'bulkText' => esc_attr(get_option('spiff_bulk_text') ?: "Personalize Bulk"),
+        'size' => esc_attr(get_option('spiff_font_size') ?: "20px"),
+        'weight' => esc_attr(get_option('spiff_font_weight') ?: "700"),
+        'textColor' => esc_attr(get_option('spiff_text_color') ?: "#fff"),
+        'backgroundColor' =>  esc_attr(get_option('spiff_background_color') ?: "#da1c5c"),
+        'width' => esc_attr(get_option('spiff_width') ?: "100%"),
+        'height' => esc_attr(get_option('spiff_height') ?: "50px")
     ));
 
 
