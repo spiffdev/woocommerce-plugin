@@ -10,7 +10,7 @@ License: GPL3
 
 require plugin_dir_path(__FILE__) . 'includes/spiff-connect-requests.php';
 
-define("SPIFF_API_BASE", "https://api.spiff.com.au");
+define("SPIFF_API_BASE", getenv("SPIFF_API_BASE"));
 define("SPIFF_API_INSTALLS_PATH", "/api/installs");
 define("SPIFF_API_ORDERS_PATH", "/api/v2/orders");
 define("SPIFF_API_TRANSACTIONS_PATH", "/api/transactions");
