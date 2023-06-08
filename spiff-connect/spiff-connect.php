@@ -14,7 +14,6 @@ define("SPIFF_API_BASE", getenv("SPIFF_API_BASE"));
 define("SPIFF_API_INSTALLS_PATH", "/api/installs");
 define("SPIFF_API_ORDERS_PATH", "/api/v2/orders");
 define("SPIFF_API_TRANSACTIONS_PATH", "/api/transactions");
-
 /**
  * Activation hook.
  */
@@ -230,14 +229,7 @@ add_action('wp_enqueue_scripts', 'spiff_enqueue_ecommerce_client');
 function spiff_enqueue_ecommerce_client() {
     wp_enqueue_script(
         'spiff-ecommerce-client',
-        plugin_dir_url(__FILE__) . 'public/js/api.js',
-        array(),
-        null
-    );
-
-    wp_enqueue_script(
-        'spiff-assets-client',
-        SPIFF_API_BASE . 'api.js',
+        plugin_dir_url(__FILE__) . 'public/js/api.js?',
         array(),
         null
     );

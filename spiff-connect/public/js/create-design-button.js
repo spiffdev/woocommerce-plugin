@@ -69,10 +69,11 @@ const spiffAppendCreateDesignButtonBulk = (wooProductId, integrationProductId, c
       container.appendChild(button);
 
       button.onclick = () => showSpiffTransaction(product, currencyCode, integrationProductId, wooProductId, redirectUrl, true);
-      //executeTransaction(currencyCode, integrationProduct, wooProductId, redirectUrl, true);
+      //button.onclick = () => executeTransaction(currencyCode, integrationProduct, wooProductId, redirectUrl, true);
     });
   });
 
+  //integrationProduct.on('invalid', () => console.error("Spiff product could not be found."));
   product.confirmActive();
 };
 
