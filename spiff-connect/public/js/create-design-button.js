@@ -59,21 +59,21 @@ const createButton = (text, buttonConfig, buttonClass) => {
 
 
 const spiffAppendCreateDesignButtonBulk = (wooProductId, integrationProductId, currencyCode, redirectUrl, buttonConfig) => {
-  const integrationProduct = new window.Spiff.IntegrationProduct(integrationProductId);
+  const product = new window.Spiff.IntegrationProduct(integrationProductId);
   const buttonClass = "test-create-design";
 
-  integrationProduct.on('ready', () => {
+  product.on('ready', () => {
     const containers = document.querySelectorAll(`.spiff-button-bulk-integration-product-${integrationProductId}`);
     containers.forEach(container => {
       const button = createButton(buttonConfig.bulkText, buttonConfig, buttonClass);
       container.appendChild(button);
 
-      button.onclick = () => executeTransaction(currencyCode, integrationProduct, wooProductId, redirectUrl, true);
+      button.onclick = () => showSpiffTransaction(product, currencyCode, integrationProductId, wooProductId, redirectUrl, true);
+      //executeTransaction(currencyCode, integrationProduct, wooProductId, redirectUrl, true);
     });
   });
 
-  integrationProduct.on('invalid', () => console.error("Spiff product could not be found."));
-  integrationProduct.confirmActive();
+  product.confirmActive();
 };
 
 const executeTransaction = async (currencyCode, integrationProduct, wooProductId, redirectUrl, isBulk) => {
@@ -103,6 +103,6 @@ const executeTransaction = async (currencyCode, integrationProduct, wooProductId
 }
 
 window.spiffAppendCreateDesignButton = spiffAppendCreateDesignButton;
-//window.spiffAppendCreateDesignButtonBulk = spiffAppendCreateDesignButtonBulk;
+window.spiffAppendCreateDesignButtonBulk = spiffAppendCreateDesignButtonBulk;
 
 

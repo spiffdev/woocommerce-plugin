@@ -15,8 +15,6 @@ define("SPIFF_API_INSTALLS_PATH", "/api/installs");
 define("SPIFF_API_ORDERS_PATH", "/api/v2/orders");
 define("SPIFF_API_TRANSACTIONS_PATH", "/api/transactions");
 
-define("SPIFF_API_ASSETS", "https://assets.spiff.com.au/");
-
 /**
  * Activation hook.
  */
@@ -239,7 +237,7 @@ function spiff_enqueue_ecommerce_client() {
 
     wp_enqueue_script(
         'spiff-assets-client',
-        SPIFF_API_ASSETS . 'api.js',
+        SPIFF_API_BASE . 'api.js',
         array(),
         null
     );
