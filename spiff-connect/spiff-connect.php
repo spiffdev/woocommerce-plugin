@@ -244,7 +244,7 @@ function spiff_enqueue_ecommerce_client() {
 
     wp_enqueue_script(
         'spiff-create-design-button',
-        plugin_dir_url(__FILE__) . 'public/js/create-design-button.js'.'?'.rand(),
+        plugin_dir_url(__FILE__) . 'public/js/create-design-button.js',
         array(),
         null
     );
