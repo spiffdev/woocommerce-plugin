@@ -73,7 +73,7 @@ const spiffAppendCreateDesignButtonBulk = (wooProductId, integrationProductId, c
     });
   });
 
-  //integrationProduct.on('invalid', () => console.error("Spiff product could not be found."));
+  product.on('invalid', () => console.error("Spiff product could not be found."));
   product.confirmActive();
 };
 
