@@ -52,4 +52,6 @@ jobs:
                 aws-region: ${{ vars.AWS_REGION }}
 
             - name: Deploy to S3
-              run: aws s3 sync ./zip-dir/$ZIP_NAME.zip s3://${{ vars.BUCKET_NAME }} --cache-control "max-age=300,s-maxage=604800,must-revalidate,public"
+              run: |
+                [[ ${{ github.event.inputs.environment }} = "development" ]] && ZIP_NAME='spiff-connect-dev' || ZIP_NAME='spiff-connect'
+                aws s3 sync ./zip-dir/$ZIP_NAME.zip s3://${{ vars.BUCKET_NAME }} --cache-control "max-age=300,s-maxage=604800,must-revalidate,public"
