@@ -54,4 +54,4 @@ jobs:
             - name: Deploy to S3
               run: |
                 [[ ${{ github.event.inputs.environment }} = "development" ]] && ZIP_NAME='spiff-connect-dev' || ZIP_NAME='spiff-connect'
-                aws s3 sync ./zip-dir/$ZIP_NAME.zip s3://${{ vars.BUCKET_NAME }} --cache-control "max-age=300,s-maxage=604800,must-revalidate,public"
+                aws s3 cp ./zip-dir s3://${{ vars.BUCKET_NAME }}
