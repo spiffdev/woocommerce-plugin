@@ -1,0 +1,29 @@
+name: Deploy
+on:
+    workflow_dispatch:
+        inputs:
+            environment:
+                description: "Deployment environment"
+                type: choice
+                required: true
+                default: "development"
+                options:
+                    - development
+                    - production
+
+run-name: Deploy to ${{ github.event.inputs.environment }} by ${{ github.actor }}
+
+permissions:
+    id-token: write # Allow connections to AWS
+    contents: read # Allow access to repository contents
+
+jobs:
+    deploy:
+        name: Deploy to ${{ github.event.inputs.environment }}
+        runs-on: ubuntu-latest
+        environment: ${{ github.event.inputs.environment }}
+        steps:
+            - uses: actions/checkout@v3
+            - uses: php-actions/composer@v6
+            - uses: php-actions/phpunit@v9
+
