@@ -29,4 +29,12 @@ jobs:
                 configuration: tests/phpunit.xml
             - name: set env vars
               run: python replace-env-vars.py ${{github.event.inputs.environment}} > tmp && mv tmp spiff-connect/spiff-connect.php
-
+            - name: pull api file
+              run: |
+                [[ ${{ github.event.inputs.environment }} = "development" ]] && API_URL='https://assets.app.dev.spiff.com.au/api.js' || API_URL='https://assets.spiff.com.au/api.js'
+                curl $API_URL > spiff-connect/public/js/api.js
+            - name: make zip file
+              run: |
+                [[ ${{ github.event.inputs.environment }} = "development" ]] && ZIP_NAME='spiff-connect-dev' || ZIP_NAME='spiff-connect'
+                mkdir zip-dir
+                zip -r - spiff-connect > zip-dir/$ZIP_NAME.zip
