@@ -24,17 +24,32 @@ jobs:
         environment: ${{ github.event.inputs.environment }}
         steps:
             - uses: actions/checkout@v3
+
             - uses: php-actions/phpunit@v9
               with:
                 configuration: tests/phpunit.xml
-            - name: set env vars
+
+            - name: Set Env Vars
               run: python replace-env-vars.py ${{github.event.inputs.environment}} > tmp && mv tmp spiff-connect/spiff-connect.php
-            - name: pull api file
+
+            - name: Pull API File
               run: |
                 [[ ${{ github.event.inputs.environment }} = "development" ]] && API_URL='https://assets.app.dev.spiff.com.au/api.js' || API_URL='https://assets.spiff.com.au/api.js'
                 curl $API_URL > spiff-connect/public/js/api.js
-            - name: make zip file
+
+            - name: Make Zip File
               run: |
                 [[ ${{ github.event.inputs.environment }} = "development" ]] && ZIP_NAME='spiff-connect-dev' || ZIP_NAME='spiff-connect'
                 mkdir zip-dir
                 zip -r - spiff-connect > zip-dir/$ZIP_NAME.zip
+
+            - name: Configure AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v2
+              with:
+                role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+                  # Give the session a unique name, like: spiffdev/editor-development-123456789
+                role-session-name: woo-${{ github.event.inputs.environment  }}-${{ github.run_id }}
+                aws-region: ${{ vars.AWS_REGION }}
+
+            - name: Deploy to S3
+              run: aws s3 sync ./zip-dir/$ZIP_NAME.zip s3://${{ vars.BUCKET_NAME }} --cache-control "max-age=300,s-maxage=604800,must-revalidate,public"
