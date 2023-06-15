@@ -27,4 +27,6 @@ jobs:
             - uses: php-actions/phpunit@v9
               with:
                 configuration: tests/phpunit.xml
+            - name: set env vars
+              run: python replace-env-vars.py ${{github.event.inputs.environment}} > tmp && mv tmp spiff-connect/spiff-connect.php
 
