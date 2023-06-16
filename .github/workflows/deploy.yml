@@ -29,6 +29,20 @@ jobs:
               with:
                 configuration: tests/phpunit.xml
 
+            - name: Merge Back (prod-only)
+              if: github.event.inputs.environment == 'production'
+              run: |
+                export VERSION=$(python next-version.py < VERSION)
+                echo $VERSION > VERSION
+                git config --global user.email "spiffdev@spiff.com.au"
+                git config --global user.name "spiffdev"
+                git add .
+                git commit -m 'Version bump'
+                git push
+                git tag -a $VERSION -m 'Build from CI service'
+                git push --tags
+                awk "NR==5{print \"Version: ${VERSION}\"}1" spiff-connect/spiff-connect.php > tmp && mv tmp spiff-connect/spiff-connect.php
+
             - name: Set Env Vars
               run: python replace-env-vars.py ${{github.event.inputs.environment}} > tmp && mv tmp spiff-connect/spiff-connect.php
 
