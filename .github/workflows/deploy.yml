@@ -69,3 +69,17 @@ jobs:
               run: |
                 [[ ${{ github.event.inputs.environment }} = "development" ]] && ZIP_NAME='spiff-connect-dev' || ZIP_NAME='spiff-connect'
                 aws s3 cp ./zip-dir/$ZIP_NAME.zip s3://${{ vars.BUCKET_NAME }}
+
+            - name: Commit to Subversion Repo (prod-only)
+              if: github.event.inputs.environment == 'production'
+              run: |
+                export VERSION=$(cat VERSION)
+                svn co https://plugins.svn.wordpress.org/spiff-3d-product-customizer svn-repo
+                cd svn-repo
+                cp -r ../spiff-connect/* trunk/
+                svn add trunk/* || echo 'Added some targets that are already under version control.'
+                cp -r ../assets/* assets/
+                svn add assets/* || echo 'Added some targets that are already under version control.'
+                svn --username ${{ secrets.SVN_CREDS_USR }} --password ${{ secrets.SVN_CREDS_PSW }} ci -m "Version ${VERSION}"
+                svn cp trunk tags/${VERSION}
+                svn --username ${{ secrets.SVN_CREDS_USR }} --password ${{ secrets.SVN_CREDS_PSW }} ci -m "Tag Version ${VERSION}"
