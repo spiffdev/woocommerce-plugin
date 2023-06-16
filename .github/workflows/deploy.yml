@@ -1,6 +1,4 @@
 name: Deploy
-permissions:
-  contents: write
 on:
     workflow_dispatch:
         inputs:
@@ -17,7 +15,7 @@ run-name: Deploy to ${{ github.event.inputs.environment }} by ${{ github.actor }
 
 permissions:
     id-token: write # Allow connections to AWS
-    contents: read # Allow access to repository contents
+    contents: write # Allow commit
 
 jobs:
     deploy:
@@ -26,6 +24,10 @@ jobs:
         environment: ${{ github.event.inputs.environment }}
         steps:
             - uses: actions/checkout@v3
+
+            - uses: php-actions/phpunit@v9
+              with:
+                configuration: tests/phpunit.xml
 
             - name: Merge Back (prod-only)
               if: github.event.inputs.environment == 'production'
