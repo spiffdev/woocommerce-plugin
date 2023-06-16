@@ -34,8 +34,8 @@ jobs:
               run: |
                 export VERSION=$(python next-version.py < VERSION)
                 echo $VERSION > VERSION
-                git config --global user.email "support@spiff.com.au"
-                git config --global user.name "GitHub Actions"
+                git config user.email "github-actions[bot]@users.noreply.github.com"
+                git config user.name "github-actions[bot]"
                 git add .
                 git commit -m 'Version bump'
                 git push
