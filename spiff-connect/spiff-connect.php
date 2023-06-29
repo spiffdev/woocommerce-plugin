@@ -2,6 +2,7 @@
 /*
 Plugin Name: Spiff Connect
 Plugin URI: http://spiff3d.com
+Version: 2.0.67
 Description: Connect your WooCommerce store to Spiff and allow customers access to Spiff Workflows to personalize their products.
 Author: Spiff Pty. Ltd.
 License: GPL3
@@ -13,7 +14,6 @@ define("SPIFF_API_BASE", getenv("SPIFF_API_BASE"));
 define("SPIFF_API_INSTALLS_PATH", "/api/installs");
 define("SPIFF_API_ORDERS_PATH", "/api/v2/orders");
 define("SPIFF_API_TRANSACTIONS_PATH", "/api/transactions");
-
 /**
  * Activation hook.
  */
@@ -233,6 +233,7 @@ function spiff_enqueue_ecommerce_client() {
         array(),
         null
     );
+
     wp_enqueue_script(
         'spiff-create-design-button',
         plugin_dir_url(__FILE__) . 'public/js/create-design-button.js',
