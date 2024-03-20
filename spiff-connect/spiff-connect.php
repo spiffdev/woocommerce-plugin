@@ -71,8 +71,7 @@ function spiff_register_admin_settings() {
     register_setting('spiff-settings-group', 'spiff_api_secret');
     register_setting('spiff-settings-group', 'spiff_show_customer_selections_in_cart');
     register_setting('spiff-settings-group', 'spiff_show_preview_images_in_cart');
-    register_setting('spiff-settings-group', 'spiff_non_bulk_text');
-    register_setting('spiff-settings-group', 'spiff_bulk_text');
+    register_setting('spiff-settings-group', 'spiff_non_bulk_text'); // Personalize button text setting has legacy name.
     register_setting('spiff-settings-group', 'spiff_font_size');
     register_setting('spiff-settings-group', 'spiff_font_weight');
     register_setting('spiff-settings-group', 'spiff_text_color');
@@ -130,12 +129,8 @@ function spiff_admin_menu_html() {
 
         <table class="form-table">
             <tr valign="top">
-                <th scope="row">Non Bulk Button Text</th>
-                <td><input autocomplete=off type="text" placeholder="Personalize One" name="spiff_non_bulk_text" value="<?php echo esc_attr(get_option('spiff_non_bulk_text') ?: "Personalize One"); ?>" /></td>
-            </tr>
-            <tr valign="top">
-                <th scope="row">Bulk Button Text</th>
-                <td><input autocomplete=off type="text" placeholder="Personalize Bulk" name="spiff_bulk_text" value="<?php echo esc_attr(get_option('spiff_bulk_text') ?: "Personalize Bulk"); ?>" /></td>
+                <th scope="row">Personalize Button Text</th>
+                <td><input autocomplete=off type="text" placeholder="Personalize One" name="spiff_non_bulk_text" value="<?php echo esc_attr(get_option('spiff_non_bulk_text') ?: "Personalize"); ?>" /></td>
             </tr>
             <tr valign="top">
                 <th scope="row">Font Size</th>
@@ -188,13 +183,8 @@ add_action('woocommerce_product_options_general_product_data', 'spiff_create_adm
 function spiff_create_admin_product_fields() {
     woocommerce_wp_checkbox( array(
       'id' => 'spiff_enabled',
-      'label' => 'Enable Non Bulk Button',
+      'label' => 'Enable Personalize Button',
     ));
-
-    woocommerce_wp_checkbox( array(
-        'id' => 'spiff_bulk_enabled',
-        'label' => 'Enable Bulk Button',
-      ));
 
     woocommerce_wp_text_input(array(
       'desc_tip' => true,
@@ -211,9 +201,7 @@ function spiff_save_admin_product_fields($post_id) {
     $product = wc_get_product($post_id);
 
     $enabled = isset($_POST['spiff_enabled']) && rest_sanitize_boolean($_POST['spiff_enabled']);
-    $bulk_enabled = isset($_POST['spiff_bulk_enabled']) && rest_sanitize_boolean($_POST['spiff_bulk_enabled']);
     $product->update_meta_data('spiff_enabled', $enabled ? 'yes' : 'no');
-    $product->update_meta_data('spiff_bulk_enabled', $bulk_enabled ? 'yes' : 'no');
     $integration_product_id = sanitize_text_field($_POST['spiff_integration_product_id']);
     $product->update_meta_data('spiff_integration_product_id', $integration_product_id);
 
@@ -251,7 +239,7 @@ add_filter('woocommerce_loop_add_to_cart_link', 'spiff_replace_default_button_on
 
 function spiff_replace_default_button_on_product_list($button, $product) {
     // Don't replace default add to cart button unless Spiff is enabled for that product.
-    if ($product->get_meta('spiff_enabled') === 'yes' || $product->get_meta('spiff_bulk_enabled') === 'yes' ) {
+    if ($product->get_meta('spiff_enabled') === 'yes') {
         $decoded = html_entity_decode($button);
         $xml = simplexml_load_string($decoded);
         $xml->attributes()->class = str_replace('ajax_add_to_cart', '', $xml->attributes()->class);
@@ -273,7 +261,7 @@ add_action('woocommerce_single_product_summary', 'spiff_replace_default_element_
 function spiff_replace_default_element_on_product_page() {
     global $product;
     // Don't replace default add to cart button unless Spiff is enabled for that product.
-    if ($product->get_meta('spiff_enabled') === 'yes' || $product->get_meta('spiff_bulk_enabled') === 'yes') {
+    if ($product->get_meta('spiff_enabled') === 'yes') {
         remove_action('woocommerce_single_product_summary', 'woocommerce_template_single_add_to_cart', 30);
         add_action('woocommerce_single_product_summary', 'spiff_append_create_design_button_on_product_page', 35);
     }
@@ -287,10 +275,8 @@ function spiff_append_create_design_button_on_product_page() {
     $integration_product_id_attr = esc_attr($product->get_meta('spiff_integration_product_id'));
     $currency_code = esc_js(get_woocommerce_currency());
     $cart_url = esc_js(wc_get_cart_url());
-    $bulk = $product->get_meta('spiff_bulk_enabled');
     $button_config = json_encode(array(
-        'nonBulkText' =>  esc_attr(get_option('spiff_non_bulk_text') ?: "Personalize One"),
-        'bulkText' => esc_attr(get_option('spiff_bulk_text') ?: "Personalize Bulk"),
+        'personalizeButtonText' =>  esc_attr(get_option('spiff_non_bulk_text') ?: "Personalize"),
         'size' => esc_attr(get_option('spiff_font_size') ?: "20px"),
         'weight' => esc_attr(get_option('spiff_font_weight') ?: "700"),
         'textColor' => esc_attr(get_option('spiff_text_color') ?: "#fff"),
@@ -305,21 +291,6 @@ function spiff_append_create_design_button_on_product_page() {
             <div class="spiff-button-integration-product-<?php echo $integration_product_id_attr; ?>"></div>
             <script>
             window.spiffAppendCreateDesignButton(
-                "<?php echo $woo_product_id; ?>",
-                "<?php echo $integration_product_id_js; ?>",
-                "<?php echo $currency_code; ?>",
-                "<?php echo $cart_url; ?>",
-                <?php echo $button_config; ?>
-            )
-            </script>
-        <?php
-    }
-
-    if ($product->get_meta('spiff_bulk_enabled') === 'yes') {
-        ?>
-            <div class="spiff-button-bulk-integration-product-<?php echo $integration_product_id_attr; ?>"></div>
-            <script>
-            window.spiffAppendCreateDesignButtonBulk(
                 "<?php echo $woo_product_id; ?>",
                 "<?php echo $integration_product_id_js; ?>",
                 "<?php echo $currency_code; ?>",
