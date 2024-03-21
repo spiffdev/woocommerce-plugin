@@ -14,4 +14,4 @@ The spiff-connect folder contains all the files of the plugin except for assets 
 ## To run tests
 
 * Install the project dependencies with composer.
-* Run `./vendor/bin/phpunit tests`.
+* Run `./vendor/bin/phpunit tests`. (If using docker: `docker run -v $(pwd):/app --rm phpunit/phpunit:latest tests`)
