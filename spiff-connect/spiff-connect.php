@@ -330,7 +330,7 @@ function spiff_append_create_design_button_on_product_page() {
         'size' => esc_attr(get_option('spiff_font_size') ?: "20px"),
         'weight' => esc_attr(get_option('spiff_font_weight') ?: "700"),
         'textColor' => esc_attr(get_option('spiff_text_color') ?: "#fff"),
-        'backgroundColor' =>  esc_attr(get_option('spiff_background_color') ?: "#da1c5c"),
+        'backgroundColor' => esc_attr(get_option('spiff_background_color') ?: "#da1c5c"),
         'width' => esc_attr(get_option('spiff_width') ?: "100%"),
         'height' => esc_attr(get_option('spiff_height') ?: "50px")
     ));
@@ -562,6 +562,7 @@ function spiff_customer_portal_button_shortcode_handler($atts) {
         <button
             class="spiff-customer-portal-button"
             onclick="window.spiffLaunchCustomerPortal('<?php echo esc_attr(get_option('spiff_application_key')) ?>', '<?php echo esc_js(wc_get_cart_url()) ?>')"
+            style="font-size: <?php echo esc_attr(get_option('spiff_customer_portal_button_font_size') ?: "20px") ?>; background: <?php echo esc_attr(get_option('spiff_customer_portal_button_background_color') ?: "#da1c5c") ?>; color: <?php echo esc_attr(get_option('spiff_customer_portal_button_text_color') ?: "#fff") ?>; font-weight: <?php echo esc_attr(get_option('spiff_customer_portal_button_font_weight') ?: "700") ?>; width: <?php echo esc_attr(get_option('spiff_customer_portal_button_width') ?: "100%") ?>; height: <?php echo esc_attr(get_option('spiff_customer_portal_button_height') ?: "50px") ?>; cursor: pointer; border: none;"
         >
             <?php echo esc_attr(get_option('spiff_customer_portal_button_text') ?: "Customer Portal") ?>
         </button>
