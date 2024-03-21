@@ -70,6 +70,7 @@ function spiff_create_admin_menu() {
 function spiff_register_admin_settings() {
     register_setting('spiff-settings-group', 'spiff_api_key');
     register_setting('spiff-settings-group', 'spiff_api_secret');
+    register_setting('spiff-settings-group', 'spiff_application_key');
 
     register_setting('spiff-settings-group', 'spiff_show_customer_selections_in_cart');
     register_setting('spiff-settings-group', 'spiff_show_preview_images_in_cart');
@@ -119,6 +120,13 @@ function spiff_admin_menu_html() {
             <tr valign="top">
             <th scope="row">Secret</th>
             <td><input autocomplete=off type="password" name="spiff_api_secret" value="<?php echo esc_attr(get_option('spiff_api_secret')); ?>" /></td>
+            </tr>
+        </table>
+        <p style="font-size: 16px;margin-bottom: 30px;position: relative;">If using the customer portal feature, you'll need to create an application key on your integration's page in the Spiff Hub.</p>
+        <table class="form-table">
+            <tr valign="top">
+            <th scope="row">Application Key</th>
+            <td><input autocomplete=off type="text" name="spiff_application_key" value="<?php echo esc_attr(get_option('spiff_application_key')); ?>" /></td>
             </tr>
         </table>
 
@@ -535,7 +543,7 @@ function spiff_post_order($access_key, $secret_key, $items, $woo_order_id) {
 function spiff_customer_portal_button_shortcode_handler($atts) {
     ob_start();
     ?>
-        <button class="spiff-customer-portal-button" onclick="window.spiffLaunchCustomerPortal()">
+        <button class="spiff-customer-portal-button" onclick="window.spiffLaunchCustomerPortal('<?php echo esc_attr(get_option('spiff_application_key')) ?>')">
             <?php echo esc_attr(get_option('spiff_customer_portal_button_text') ?: "Customer Portal") ?>
         </button>
     <?php

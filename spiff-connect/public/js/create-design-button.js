@@ -85,8 +85,9 @@ const addTransactionToCart = async () => {
 
 };
 
-const spiffLaunchCustomerPortal = () => {
+const spiffLaunchCustomerPortal = (applicationKey) => {
   hostedExperienceOptions = {
+    applicationKey,
     portalMode: true,
   };
   const hostedExperience = new window.Spiff.HostedExperience(hostedExperienceOptions);
@@ -99,8 +100,8 @@ const spiffLaunchCustomerPortal = () => {
     for(const item of result.items) {
       await addTransactionToCart(item);
     }
-    hostedExperience.execute({});
   });
+  hostedExperience.execute({});
 };
 
 window.spiffAppendCreateDesignButton = spiffAppendCreateDesignButton;
