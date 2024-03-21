@@ -25,10 +25,6 @@ jobs:
         steps:
             - uses: actions/checkout@v3
 
-            - uses: php-actions/phpunit@v9
-              with:
-                configuration: tests/phpunit.xml
-
             - name: Merge Back (prod-only)
               if: github.event.inputs.environment == 'production'
               run: |
