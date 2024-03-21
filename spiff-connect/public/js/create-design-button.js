@@ -4,7 +4,6 @@ const htmlDecode = input => {
 };
 
 const spiffAppendCreateDesignButton = (wooProductId, integrationProductId, currencyCode, redirectUrl, buttonConfig) => {
- 
   const product = new window.Spiff.IntegrationProduct(integrationProductId);
   const buttonClass = "test-create-design";
 
@@ -82,4 +81,27 @@ const executeTransaction = async (currencyCode, integrationProduct, wooProductId
   transaction.execute();
 }
 
+const addTransactionToCart = async () => {
+
+};
+
+const spiffLaunchCustomerPortal = () => {
+  hostedExperienceOptions = {
+    portalMode: true,
+  };
+  const hostedExperience = new window.Spiff.HostedExperience(hostedExperienceOptions);
+  hostedExperience.on('complete', async (result) => {
+    // Add bundle items to cart.
+    if (!result.items || result.items.length === 0) {
+      throw new Error('SpiffCommerce - Bundle has no items');
+    }
+    console.log("SpiffCommerce - Adding Bundle to Cart");
+    for(const item of result.items) {
+      await addTransactionToCart(item);
+    }
+    hostedExperience.execute({});
+  });
+};
+
 window.spiffAppendCreateDesignButton = spiffAppendCreateDesignButton;
+window.spiffLaunchCustomerPortal = spiffLaunchCustomerPortal;

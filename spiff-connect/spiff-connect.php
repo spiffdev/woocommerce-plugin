@@ -535,7 +535,7 @@ function spiff_post_order($access_key, $secret_key, $items, $woo_order_id) {
 function spiff_customer_portal_button_shortcode_handler($atts) {
     ob_start();
     ?>
-        <button class="spiff-customer-portal-button">
+        <button class="spiff-customer-portal-button" onclick="window.spiffLaunchCustomerPortal()">
             <?php echo esc_attr(get_option('spiff_customer_portal_button_text') ?: "Customer Portal") ?>
         </button>
     <?php
