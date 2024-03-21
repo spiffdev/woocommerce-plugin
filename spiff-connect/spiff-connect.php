@@ -14,6 +14,7 @@ define("SPIFF_API_BASE", getenv("SPIFF_API_BASE"));
 define("SPIFF_API_INSTALLS_PATH", "/api/installs");
 define("SPIFF_API_ORDERS_PATH", "/api/v2/orders");
 define("SPIFF_API_TRANSACTIONS_PATH", "/api/transactions");
+define("SPIFF_GRAPHQL_PATH", "/graphql");
 
 /**
  * Activation hook.
@@ -383,8 +384,8 @@ function spiff_create_cart_item() {
         if (!$transaction) {
             error_log('Failed to retrieve transaction ' . $transaction_id);
         } else {
-            $woo_product_id = sanitize_text_field($details->wooProductId ?? spiff_get_woo_id_from_transaction($transaction));
-            $price_in_subunits = $transaction->data->baseCost + $transaction->data->optionsCost;
+            $woo_product_id = sanitize_text_field($details->wooProductId);
+            $price_in_subunits = $transaction->product->basePrice + $transaction->priceModifierTotal;
             $metadata['spiff_item_price'] = floatval($price_in_subunits / ( 10 ** wc_get_price_decimals()));
             $woocommerce->cart->add_to_cart($woo_product_id, 1, '', '', $metadata);
         }
@@ -394,21 +395,25 @@ function spiff_create_cart_item() {
 
 // Get the data associated with a transaction.
 function spiff_get_transaction($transaction_id) {
-    $url = SPIFF_API_BASE . SPIFF_API_TRANSACTIONS_PATH . '/' . $transaction_id;
+    $url = SPIFF_API_BASE . SPIFF_GRAPHQL_PATH;
     $access_key = get_option('spiff_api_key');
     $secret_key = get_option('spiff_api_secret');
-    $headers = spiff_request_headers($access_key, $secret_key, '', SPIFF_API_TRANSACTIONS_PATH);
-    $response = wp_remote_get($url);
+    $body = json_encode(array(
+        'operationName' => 'GetTransaction',
+        'query' => "query GetTransaction { transactions(ids: [\"$transaction_id\"]) { priceModifierTotal, product { basePrice } } }",
+    ));
+    $headers = spiff_request_headers($access_key, $secret_key, $body, SPIFF_GRAPHQL_PATH);
+    $response = wp_remote_post($url, array(
+        'body' => $body,
+        'headers' => $headers,
+    ));
     $response_status = wp_remote_retrieve_response_code($response);
-    if ($response_status !== 200) {
-        error_log('Response status: ' . $response_status);
-        return null;
-    } else {
-        $body = wp_remote_retrieve_body($response);
-        return json_decode($body);
-    }
+    $response_body = wp_remote_retrieve_body($response);
+    $decoded = json_decode($response_body);
+    return $decoded->data->transactions[0];
 }
 
+/*
 function spiff_get_woo_id_from_transaction($transaction) {
     $integration_product_id = $transaction->data->integrationProductId;
     $products = wc_get_products(array('limit' => -1));
@@ -420,6 +425,7 @@ function spiff_get_woo_id_from_transaction($transaction) {
     error_log('Failed to find product for integration product ID ' . $integration_product_id);
     return null;
 }
+*/
 
 /**
  * Update cart item price to reflect option costs.
