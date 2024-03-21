@@ -409,6 +409,16 @@ function spiff_get_transaction($transaction_id) {
     }
 }
 
+function spiff_get_woo_id_from_transaction($transaction) {
+    $integration_product_id = $transaction->data->integrationProductId;
+    $products = wc_get_products(array('limit' => -1));
+    foreach($products as $product) {
+        if($integration_product_id == (esc_js($product->get_meta('spiff_integration_product_id')))) {
+            $product->get_id();
+        }
+    }
+    return null;
+}
 
 /**
  * Update cart item price to reflect option costs.
