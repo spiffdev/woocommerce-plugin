@@ -14,6 +14,8 @@ define("SPIFF_API_BASE", getenv("SPIFF_API_BASE"));
 define("SPIFF_API_INSTALLS_PATH", "/api/installs");
 define("SPIFF_API_ORDERS_PATH", "/api/v2/orders");
 define("SPIFF_API_TRANSACTIONS_PATH", "/api/transactions");
+define("SPIFF_GRAPHQL_PATH", "/graphql");
+
 /**
  * Activation hook.
  */
@@ -69,16 +71,26 @@ function spiff_create_admin_menu() {
 function spiff_register_admin_settings() {
     register_setting('spiff-settings-group', 'spiff_api_key');
     register_setting('spiff-settings-group', 'spiff_api_secret');
+    register_setting('spiff-settings-group', 'spiff_application_key');
+
     register_setting('spiff-settings-group', 'spiff_show_customer_selections_in_cart');
     register_setting('spiff-settings-group', 'spiff_show_preview_images_in_cart');
-    register_setting('spiff-settings-group', 'spiff_non_bulk_text');
-    register_setting('spiff-settings-group', 'spiff_bulk_text');
+
+    register_setting('spiff-settings-group', 'spiff_non_bulk_text'); // Personalize button text setting has legacy name.
     register_setting('spiff-settings-group', 'spiff_font_size');
     register_setting('spiff-settings-group', 'spiff_font_weight');
     register_setting('spiff-settings-group', 'spiff_text_color');
     register_setting('spiff-settings-group', 'spiff_background_color');
     register_setting('spiff-settings-group', 'spiff_width');
     register_setting('spiff-settings-group', 'spiff_height');
+
+    register_setting('spiff-settings-group', 'spiff_customer_portal_button_text');
+    register_setting('spiff-settings-group', 'spiff_customer_portal_button_font_size');
+    register_setting('spiff-settings-group', 'spiff_customer_portal_button_font_weight');
+    register_setting('spiff-settings-group', 'spiff_customer_portal_button_text_color');
+    register_setting('spiff-settings-group', 'spiff_customer_portal_button_background_color');
+    register_setting('spiff-settings-group', 'spiff_customer_portal_button_width');
+    register_setting('spiff-settings-group', 'spiff_customer_portal_button_height');
 }
 
 // Render the HTML for the global settings page.
@@ -95,12 +107,11 @@ function spiff_admin_menu_html() {
     </style>
     <img style="width:200px;" src="<?php echo plugins_url("assets/spiff_logo.png",__FILE__) ; ?>">
     <form autocomplete="off" method="post" action="options.php">
-        <h2 style="font-size: 24px;line-height: 29px;position: relative;">Integration Details</h2>
-        <p style="font-size: 16px; position: relative;">Enter your integration's access key and secret here.</p>
-        <p style="font-size: 16px;margin-bottom: 30px;position: relative;">Your integration's key and secret may be found on your integration's page in the Spiff Hub.</p>
-
         <?php settings_fields('spiff-settings-group'); ?>
         <?php do_settings_sections('spiff-settings-group'); ?>
+
+        <h2 style="font-size: 24px;line-height: 29px;position: relative;">Integration Details</h2>
+        <p style="font-size: 16px;margin-bottom: 30px;position: relative;">Your integration's key and secret may be found on your integration's page in the Spiff Hub.</p>
         <table class="form-table">
             <tr valign="top">
             <th scope="row">Access Key</th>
@@ -112,30 +123,31 @@ function spiff_admin_menu_html() {
             <td><input autocomplete=off type="password" name="spiff_api_secret" value="<?php echo esc_attr(get_option('spiff_api_secret')); ?>" /></td>
             </tr>
         </table>
-
-        <h2 style="font-size: 24px;line-height: 29px;position: relative;">Settings</h2>
-
+        <p style="font-size: 16px;margin-bottom: 30px;position: relative;">If using the customer portal feature, you'll need to create an application key on your integration's page in the Spiff Hub.</p>
         <table class="form-table">
             <tr valign="top">
-            <th scope="row">Show customer selections in cart</th>
+            <th scope="row">Application Key</th>
+            <td><input autocomplete=off type="text" name="spiff_application_key" value="<?php echo esc_attr(get_option('spiff_application_key')); ?>" /></td>
+            </tr>
+        </table>
+
+        <h2 style="font-size: 24px;line-height: 29px;position: relative;">Cart</h2>
+        <table class="form-table">
+            <tr valign="top">
+            <th scope="row">Show customer selections</th>
             <td><input type="checkbox" name="spiff_show_customer_selections_in_cart" value="1" <?php echo checked("1", get_option('spiff_show_customer_selections_in_cart')); ?> /></td>
             </tr>
             <tr valign="top">
-            <th scope="row">Show preview images in cart</th>
+            <th scope="row">Show preview images</th>
             <td><input type="checkbox" name="spiff_show_preview_images_in_cart" value="1" <?php echo checked("1", get_option('spiff_show_preview_images_in_cart')); ?> /></td>
             </tr>
         </table>
 
-        <h2 style="font-size: 24px;line-height: 29px;position: relative;">Global Button Styles</h2>
-
+        <h2 style="font-size: 24px;line-height: 29px;position: relative;">Personalize Button</h2>
         <table class="form-table">
             <tr valign="top">
-                <th scope="row">Non Bulk Button Text</th>
-                <td><input autocomplete=off type="text" placeholder="Personalize One" name="spiff_non_bulk_text" value="<?php echo esc_attr(get_option('spiff_non_bulk_text') ?: "Personalize One"); ?>" /></td>
-            </tr>
-            <tr valign="top">
-                <th scope="row">Bulk Button Text</th>
-                <td><input autocomplete=off type="text" placeholder="Personalize Bulk" name="spiff_bulk_text" value="<?php echo esc_attr(get_option('spiff_bulk_text') ?: "Personalize Bulk"); ?>" /></td>
+                <th scope="row">Text</th>
+                <td><input autocomplete=off type="text" placeholder="Personalize" name="spiff_non_bulk_text" value="<?php echo esc_attr(get_option('spiff_non_bulk_text') ?: "Personalize"); ?>" /></td>
             </tr>
             <tr valign="top">
                 <th scope="row">Font Size</th>
@@ -160,6 +172,39 @@ function spiff_admin_menu_html() {
             <tr valign="top">
                 <th scope="row">Height</th>
                 <td><input autocomplete=off placeholder="50px" type="text" name="spiff_height" value="<?php echo esc_attr(get_option('spiff_height') ?: "50px"); ?>" /></td>
+            </tr>
+        </table>
+
+        <h2 style="font-size: 24px;line-height: 29px;position: relative;">Customer Portal Button</h2>
+        <p style="font-size: 16px;margin-bottom: 30px;position: relative;">The customer portal button can be added to pages using the shortcode [spiff_customer_portal_button].</p>
+        <table class="form-table">
+            <tr valign="top">
+                <th scope="row">Text</th>
+                <td><input autocomplete=off type="text" placeholder="Customer Portal" name="spiff_customer_portal_button_text" value="<?php echo esc_attr(get_option('spiff_customer_portal_button_text') ?: "Customer Portal"); ?>" /></td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">Font Size</th>
+                <td><input autocomplete=off placeholder="20px" type="text" name="spiff_customer_portal_button_font_size" value="<?php echo esc_attr(get_option('spiff_customer_portal_button_font_size') ?: "20px"); ?>" /></td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">Font Weight</th>
+                <td><input autocomplete=off placeholder="700" type="text" name="spiff_customer_portal_button_font_weight" value="<?php echo esc_attr(get_option('spiff_customer_portal_button_font_weight') ?: "700"); ?>" /></td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">Text Color</th>
+                <td><input autocomplete=off placeholder="#fff" type="text" name="spiff_customer_portal_button_text_color" value="<?php echo esc_attr(get_option('spiff_customer_portal_button_text_color') ?: "#fff"); ?>" /></td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">Background Color</th>
+                <td><input autocomplete=off placeholder="#da1c5c" type="text" name="spiff_customer_portal_button_background_color" value="<?php echo esc_attr(get_option('spiff_customer_portal_button_background_color') ?: "#da1c5c"); ?>" /></td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">Width</th>
+                <td><input autocomplete=off placeholder="100%" type="text" name="spiff_customer_portal_button_width" value="<?php echo esc_attr(get_option('spiff_customer_portal_button_width') ?: "100%"); ?>" /></td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">Height</th>
+                <td><input autocomplete=off placeholder="50px" type="text" name="spiff_customer_portal_button_height" value="<?php echo esc_attr(get_option('spiff_customer_portal_button_height') ?: "50px"); ?>" /></td>
             </tr>
         </table>
 
@@ -188,13 +233,8 @@ add_action('woocommerce_product_options_general_product_data', 'spiff_create_adm
 function spiff_create_admin_product_fields() {
     woocommerce_wp_checkbox( array(
       'id' => 'spiff_enabled',
-      'label' => 'Enable Non Bulk Button',
+      'label' => 'Enable Personalize Button',
     ));
-
-    woocommerce_wp_checkbox( array(
-        'id' => 'spiff_bulk_enabled',
-        'label' => 'Enable Bulk Button',
-      ));
 
     woocommerce_wp_text_input(array(
       'desc_tip' => true,
@@ -211,9 +251,7 @@ function spiff_save_admin_product_fields($post_id) {
     $product = wc_get_product($post_id);
 
     $enabled = isset($_POST['spiff_enabled']) && rest_sanitize_boolean($_POST['spiff_enabled']);
-    $bulk_enabled = isset($_POST['spiff_bulk_enabled']) && rest_sanitize_boolean($_POST['spiff_bulk_enabled']);
     $product->update_meta_data('spiff_enabled', $enabled ? 'yes' : 'no');
-    $product->update_meta_data('spiff_bulk_enabled', $bulk_enabled ? 'yes' : 'no');
     $integration_product_id = sanitize_text_field($_POST['spiff_integration_product_id']);
     $product->update_meta_data('spiff_integration_product_id', $integration_product_id);
 
@@ -251,7 +289,7 @@ add_filter('woocommerce_loop_add_to_cart_link', 'spiff_replace_default_button_on
 
 function spiff_replace_default_button_on_product_list($button, $product) {
     // Don't replace default add to cart button unless Spiff is enabled for that product.
-    if ($product->get_meta('spiff_enabled') === 'yes' || $product->get_meta('spiff_bulk_enabled') === 'yes' ) {
+    if ($product->get_meta('spiff_enabled') === 'yes') {
         $decoded = html_entity_decode($button);
         $xml = simplexml_load_string($decoded);
         $xml->attributes()->class = str_replace('ajax_add_to_cart', '', $xml->attributes()->class);
@@ -273,7 +311,7 @@ add_action('woocommerce_single_product_summary', 'spiff_replace_default_element_
 function spiff_replace_default_element_on_product_page() {
     global $product;
     // Don't replace default add to cart button unless Spiff is enabled for that product.
-    if ($product->get_meta('spiff_enabled') === 'yes' || $product->get_meta('spiff_bulk_enabled') === 'yes') {
+    if ($product->get_meta('spiff_enabled') === 'yes') {
         remove_action('woocommerce_single_product_summary', 'woocommerce_template_single_add_to_cart', 30);
         add_action('woocommerce_single_product_summary', 'spiff_append_create_design_button_on_product_page', 35);
     }
@@ -287,14 +325,12 @@ function spiff_append_create_design_button_on_product_page() {
     $integration_product_id_attr = esc_attr($product->get_meta('spiff_integration_product_id'));
     $currency_code = esc_js(get_woocommerce_currency());
     $cart_url = esc_js(wc_get_cart_url());
-    $bulk = $product->get_meta('spiff_bulk_enabled');
     $button_config = json_encode(array(
-        'nonBulkText' =>  esc_attr(get_option('spiff_non_bulk_text') ?: "Personalize One"),
-        'bulkText' => esc_attr(get_option('spiff_bulk_text') ?: "Personalize Bulk"),
+        'personalizeButtonText' =>  esc_attr(get_option('spiff_non_bulk_text') ?: "Personalize"),
         'size' => esc_attr(get_option('spiff_font_size') ?: "20px"),
         'weight' => esc_attr(get_option('spiff_font_weight') ?: "700"),
         'textColor' => esc_attr(get_option('spiff_text_color') ?: "#fff"),
-        'backgroundColor' =>  esc_attr(get_option('spiff_background_color') ?: "#da1c5c"),
+        'backgroundColor' => esc_attr(get_option('spiff_background_color') ?: "#da1c5c"),
         'width' => esc_attr(get_option('spiff_width') ?: "100%"),
         'height' => esc_attr(get_option('spiff_height') ?: "50px")
     ));
@@ -305,21 +341,6 @@ function spiff_append_create_design_button_on_product_page() {
             <div class="spiff-button-integration-product-<?php echo $integration_product_id_attr; ?>"></div>
             <script>
             window.spiffAppendCreateDesignButton(
-                "<?php echo $woo_product_id; ?>",
-                "<?php echo $integration_product_id_js; ?>",
-                "<?php echo $currency_code; ?>",
-                "<?php echo $cart_url; ?>",
-                <?php echo $button_config; ?>
-            )
-            </script>
-        <?php
-    }
-
-    if ($product->get_meta('spiff_bulk_enabled') === 'yes') {
-        ?>
-            <div class="spiff-button-bulk-integration-product-<?php echo $integration_product_id_attr; ?>"></div>
-            <script>
-            window.spiffAppendCreateDesignButtonBulk(
                 "<?php echo $woo_product_id; ?>",
                 "<?php echo $integration_product_id_js; ?>",
                 "<?php echo $currency_code; ?>",
@@ -347,7 +368,6 @@ function spiff_create_cart_item() {
         // Marshall the data received from the Javascript post into a new cart item.
         // Everything except the product ID is used to add metadata to the cart item.
 
-        $woo_product_id = sanitize_text_field($details->wooProductId);
         $metadata = array();
 
         $transaction_id = sanitize_text_field($details->transactionId);
@@ -364,7 +384,8 @@ function spiff_create_cart_item() {
         if (!$transaction) {
             error_log('Failed to retrieve transaction ' . $transaction_id);
         } else {
-            $price_in_subunits = $transaction->data->baseCost + $transaction->data->optionsCost;
+            $woo_product_id = sanitize_text_field($details->wooProductId ?? spiff_get_woo_id_from_transaction($transaction));
+            $price_in_subunits = $transaction->product->basePrice + $transaction->priceModifierTotal;
             $metadata['spiff_item_price'] = floatval($price_in_subunits / ( 10 ** wc_get_price_decimals()));
             $woocommerce->cart->add_to_cart($woo_product_id, 1, '', '', $metadata);
         }
@@ -374,21 +395,36 @@ function spiff_create_cart_item() {
 
 // Get the data associated with a transaction.
 function spiff_get_transaction($transaction_id) {
-    $url = SPIFF_API_BASE . SPIFF_API_TRANSACTIONS_PATH . '/' . $transaction_id;
+    $url = SPIFF_API_BASE . SPIFF_GRAPHQL_PATH;
     $access_key = get_option('spiff_api_key');
     $secret_key = get_option('spiff_api_secret');
-    $headers = spiff_request_headers($access_key, $secret_key, '', SPIFF_API_TRANSACTIONS_PATH);
-    $response = wp_remote_get($url);
+    $body = json_encode(array(
+        'operationName' => 'GetTransaction',
+        'query' => "query GetTransaction { transactions(ids: [\"$transaction_id\"]) { priceModifierTotal, product { basePrice, integrationProducts { id } } } }",
+    ));
+    $headers = spiff_request_headers($access_key, $secret_key, $body, SPIFF_GRAPHQL_PATH);
+    $response = wp_remote_post($url, array(
+        'body' => $body,
+        'headers' => $headers,
+    ));
     $response_status = wp_remote_retrieve_response_code($response);
-    if ($response_status !== 200) {
-        error_log('Response status: ' . $response_status);
-        return null;
-    } else {
-        $body = wp_remote_retrieve_body($response);
-        return json_decode($body);
-    }
+    $response_body = wp_remote_retrieve_body($response);
+    $decoded = json_decode($response_body);
+    return $decoded->data->transactions[0];
 }
 
+function spiff_get_woo_id_from_transaction($transaction) {
+    $products = wc_get_products(array('limit' => -1));
+    foreach ($products as $product) {
+        foreach ($transaction->product->integrationProducts as $integration_product) {
+            if($integration_product->id === (esc_js($product->get_meta('spiff_integration_product_id')))) {
+                return $product->get_id();
+            }
+        }
+    }
+    error_log('Failed to find product for integration product ID ' . $integration_product_id);
+    return null;
+}
 
 /**
  * Update cart item price to reflect option costs.
@@ -515,3 +551,22 @@ function spiff_post_order($access_key, $secret_key, $items, $woo_order_id) {
         error_log('Response status: ' . $response_status);
     }
 }
+
+/**
+ * Shortcodes.
+ */
+
+function spiff_customer_portal_button_shortcode_handler($atts) {
+    ob_start();
+    ?>
+        <button
+            class="spiff-customer-portal-button"
+            onclick="window.spiffLaunchCustomerPortal('<?php echo esc_attr(get_option('spiff_application_key')) ?>', '<?php echo esc_js(wc_get_cart_url()) ?>')"
+            style="font-size: <?php echo esc_attr(get_option('spiff_customer_portal_button_font_size') ?: "20px") ?>; background: <?php echo esc_attr(get_option('spiff_customer_portal_button_background_color') ?: "#da1c5c") ?>; color: <?php echo esc_attr(get_option('spiff_customer_portal_button_text_color') ?: "#fff") ?>; font-weight: <?php echo esc_attr(get_option('spiff_customer_portal_button_font_weight') ?: "700") ?>; width: <?php echo esc_attr(get_option('spiff_customer_portal_button_width') ?: "100%") ?>; height: <?php echo esc_attr(get_option('spiff_customer_portal_button_height') ?: "50px") ?>; cursor: pointer; border: none;"
+        >
+            <?php echo esc_attr(get_option('spiff_customer_portal_button_text') ?: "Customer Portal") ?>
+        </button>
+    <?php
+    return ob_get_clean();
+}
+add_shortcode("spiff_customer_portal_button", "spiff_customer_portal_button_shortcode_handler");
