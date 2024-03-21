@@ -14,6 +14,7 @@ define("SPIFF_API_BASE", getenv("SPIFF_API_BASE"));
 define("SPIFF_API_INSTALLS_PATH", "/api/installs");
 define("SPIFF_API_ORDERS_PATH", "/api/v2/orders");
 define("SPIFF_API_TRANSACTIONS_PATH", "/api/transactions");
+
 /**
  * Activation hook.
  */
@@ -69,8 +70,10 @@ function spiff_create_admin_menu() {
 function spiff_register_admin_settings() {
     register_setting('spiff-settings-group', 'spiff_api_key');
     register_setting('spiff-settings-group', 'spiff_api_secret');
+
     register_setting('spiff-settings-group', 'spiff_show_customer_selections_in_cart');
     register_setting('spiff-settings-group', 'spiff_show_preview_images_in_cart');
+
     register_setting('spiff-settings-group', 'spiff_non_bulk_text'); // Personalize button text setting has legacy name.
     register_setting('spiff-settings-group', 'spiff_font_size');
     register_setting('spiff-settings-group', 'spiff_font_weight');
@@ -78,6 +81,14 @@ function spiff_register_admin_settings() {
     register_setting('spiff-settings-group', 'spiff_background_color');
     register_setting('spiff-settings-group', 'spiff_width');
     register_setting('spiff-settings-group', 'spiff_height');
+
+    register_setting('spiff-settings-group', 'spiff_customer_portal_button_text');
+    register_setting('spiff-settings-group', 'spiff_customer_portal_button_font_size');
+    register_setting('spiff-settings-group', 'spiff_customer_portal_button_font_weight');
+    register_setting('spiff-settings-group', 'spiff_customer_portal_button_text_color');
+    register_setting('spiff-settings-group', 'spiff_customer_portal_button_background_color');
+    register_setting('spiff-settings-group', 'spiff_customer_portal_button_width');
+    register_setting('spiff-settings-group', 'spiff_customer_portal_button_height');
 }
 
 // Render the HTML for the global settings page.
@@ -94,12 +105,11 @@ function spiff_admin_menu_html() {
     </style>
     <img style="width:200px;" src="<?php echo plugins_url("assets/spiff_logo.png",__FILE__) ; ?>">
     <form autocomplete="off" method="post" action="options.php">
-        <h2 style="font-size: 24px;line-height: 29px;position: relative;">Integration Details</h2>
-        <p style="font-size: 16px; position: relative;">Enter your integration's access key and secret here.</p>
-        <p style="font-size: 16px;margin-bottom: 30px;position: relative;">Your integration's key and secret may be found on your integration's page in the Spiff Hub.</p>
-
         <?php settings_fields('spiff-settings-group'); ?>
         <?php do_settings_sections('spiff-settings-group'); ?>
+
+        <h2 style="font-size: 24px;line-height: 29px;position: relative;">Integration Details</h2>
+        <p style="font-size: 16px;margin-bottom: 30px;position: relative;">Your integration's key and secret may be found on your integration's page in the Spiff Hub.</p>
         <table class="form-table">
             <tr valign="top">
             <th scope="row">Access Key</th>
@@ -112,25 +122,23 @@ function spiff_admin_menu_html() {
             </tr>
         </table>
 
-        <h2 style="font-size: 24px;line-height: 29px;position: relative;">Settings</h2>
-
+        <h2 style="font-size: 24px;line-height: 29px;position: relative;">Cart</h2>
         <table class="form-table">
             <tr valign="top">
-            <th scope="row">Show customer selections in cart</th>
+            <th scope="row">Show customer selections</th>
             <td><input type="checkbox" name="spiff_show_customer_selections_in_cart" value="1" <?php echo checked("1", get_option('spiff_show_customer_selections_in_cart')); ?> /></td>
             </tr>
             <tr valign="top">
-            <th scope="row">Show preview images in cart</th>
+            <th scope="row">Show preview images</th>
             <td><input type="checkbox" name="spiff_show_preview_images_in_cart" value="1" <?php echo checked("1", get_option('spiff_show_preview_images_in_cart')); ?> /></td>
             </tr>
         </table>
 
-        <h2 style="font-size: 24px;line-height: 29px;position: relative;">Global Button Styles</h2>
-
+        <h2 style="font-size: 24px;line-height: 29px;position: relative;">Personalize Button</h2>
         <table class="form-table">
             <tr valign="top">
-                <th scope="row">Personalize Button Text</th>
-                <td><input autocomplete=off type="text" placeholder="Personalize One" name="spiff_non_bulk_text" value="<?php echo esc_attr(get_option('spiff_non_bulk_text') ?: "Personalize"); ?>" /></td>
+                <th scope="row">Text</th>
+                <td><input autocomplete=off type="text" placeholder="Personalize" name="spiff_non_bulk_text" value="<?php echo esc_attr(get_option('spiff_non_bulk_text') ?: "Personalize"); ?>" /></td>
             </tr>
             <tr valign="top">
                 <th scope="row">Font Size</th>
@@ -155,6 +163,39 @@ function spiff_admin_menu_html() {
             <tr valign="top">
                 <th scope="row">Height</th>
                 <td><input autocomplete=off placeholder="50px" type="text" name="spiff_height" value="<?php echo esc_attr(get_option('spiff_height') ?: "50px"); ?>" /></td>
+            </tr>
+        </table>
+
+        <h2 style="font-size: 24px;line-height: 29px;position: relative;">Customer Portal Button</h2>
+        <p style="font-size: 16px;margin-bottom: 30px;position: relative;">The customer portal button can be added to pages using the shortcode [spiff_customer_portal_button].</p>
+        <table class="form-table">
+            <tr valign="top">
+                <th scope="row">Text</th>
+                <td><input autocomplete=off type="text" placeholder="Customer Portal" name="spiff_customer_portal_button_text" value="<?php echo esc_attr(get_option('spiff_customer_portal_button_text') ?: "Customer Portal"); ?>" /></td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">Font Size</th>
+                <td><input autocomplete=off placeholder="20px" type="text" name="spiff_customer_portal_button_font_size" value="<?php echo esc_attr(get_option('spiff_customer_portal_button_font_size') ?: "20px"); ?>" /></td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">Font Weight</th>
+                <td><input autocomplete=off placeholder="700" type="text" name="spiff_customer_portal_button_font_weight" value="<?php echo esc_attr(get_option('spiff_customer_portal_button_font_weight') ?: "700"); ?>" /></td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">Text Color</th>
+                <td><input autocomplete=off placeholder="#fff" type="text" name="spiff_customer_portal_button_text_color" value="<?php echo esc_attr(get_option('spiff_customer_portal_button_text_color') ?: "#fff"); ?>" /></td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">Background Color</th>
+                <td><input autocomplete=off placeholder="#da1c5c" type="text" name="spiff_customer_portal_button_background_color" value="<?php echo esc_attr(get_option('spiff_customer_portal_button_background_color') ?: "#da1c5c"); ?>" /></td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">Width</th>
+                <td><input autocomplete=off placeholder="100%" type="text" name="spiff_customer_portal_button_width" value="<?php echo esc_attr(get_option('spiff_customer_portal_button_width') ?: "100%"); ?>" /></td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">Height</th>
+                <td><input autocomplete=off placeholder="50px" type="text" name="spiff_customer_portal_button_height" value="<?php echo esc_attr(get_option('spiff_customer_portal_button_height') ?: "50px"); ?>" /></td>
             </tr>
         </table>
 
@@ -487,9 +528,17 @@ function spiff_post_order($access_key, $secret_key, $items, $woo_order_id) {
     }
 }
 
+/**
+ * Shortcodes.
+ */
+
 function spiff_customer_portal_button_shortcode_handler($atts) {
     ob_start();
-    ?> <button>Click me</button> <?php
+    ?>
+        <button class="spiff-customer-portal-button">
+            <?php echo esc_attr(get_option('spiff_customer_portal_button_text') ?: "Customer Portal") ?>
+        </button>
+    <?php
     return ob_get_clean();
 }
 add_shortcode("spiff_customer_portal_button", "spiff_customer_portal_button_shortcode_handler");

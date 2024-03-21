@@ -83,4 +83,3 @@ const executeTransaction = async (currencyCode, integrationProduct, wooProductId
 }
 
 window.spiffAppendCreateDesignButton = spiffAppendCreateDesignButton;
-window.spiffAppendCreateDesignButtonBulk = spiffAppendCreateDesignButtonBulk;
