@@ -79,8 +79,6 @@ const spiffLaunchCustomerPortal = (applicationKey, redirectUrl) => {
   };
   const hostedExperience = new window.Spiff.HostedExperience(hostedExperienceOptions);
   hostedExperience.on('complete', async (result) => {
-    console.log(JSON.stringify(result, null, 2));
-
     if (result.type === 'transaction') {
       console.log("SpiffCommerce - Adding Transaction to Cart");
       await addTransactionFromCustomerPortalToCart(result);
