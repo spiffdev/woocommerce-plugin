@@ -486,3 +486,10 @@ function spiff_post_order($access_key, $secret_key, $items, $woo_order_id) {
         error_log('Response status: ' . $response_status);
     }
 }
+
+function spiff_customer_portal_button_shortcode_handler($atts) {
+    ob_start();
+    ?> <button>Click me</button> <?php
+    return ob_get_clean();
+}
+add_shortcode("spiff_customer_portal_button", "spiff_customer_portal_button_shortcode_handler");
