@@ -27,21 +27,22 @@ const showSpiffTransaction = ( product, currencyCode, wooProductId, redirectUrl)
   };
   const hostedExperience = new window.Spiff.HostedExperience(hostedExperienceOptions);
   hostedExperience.on("complete", async (result) => {
-      // Handle the result of the workflow experience..
+    // Handle the result of the workflow experience..
     const data = new FormData();
-    data.append('action', 'spiff_create_cart_item')
-    data.append('spiff_create_cart_item_details', JSON.stringify({
-      exportedData: result.exportedData,
-      transactionId: result.transactionId,
-      wooProductId,
-    }));
-    
-    await fetch(ajax_object.ajax_url, {
-      method: 'POST',
+    data.append("action", "spiff_create_cart_item");
+    data.append(
+      "spiff_create_cart_item_details",
+      JSON.stringify({
+        exportedData: result.exportedData,
+        transactionId: result.transactionId,
+        wooProductId,
+      })
+    );
+    const aaa = await fetch(ajax_object.ajax_url, {
+      method: "POST",
       body: data,
     });
     window.location = htmlDecode(redirectUrl);
-
   });
   hostedExperience.execute();
 }
@@ -55,36 +56,6 @@ const createButton = (text, buttonConfig, buttonClass) => {
   return button;
 }
 
-const executeTransaction = async (currencyCode, integrationProduct, wooProductId, redirectUrl, isBulk) => {
-  const transaction = new window.Spiff.Transaction({
-    presentmentCurrency: currencyCode,
-    integrationProduct,
-    bulk: isBulk
-  });
-
-  transaction.on('complete', async result => {
-    const data = new FormData();
-    data.append('action', 'spiff_create_cart_item')
-    data.append('spiff_create_cart_item_details', JSON.stringify({
-      exportedData: result.exportedData,
-      transactionId: result.transactionId,
-      wooProductId,
-    }));
-    
-    await fetch(ajax_object.ajax_url, {
-      method: 'POST',
-      body: data,
-    });
-    window.location = htmlDecode(redirectUrl);
-  });
-
-  transaction.execute();
-}
-
-const addTransactionToCart = async () => {
-
-};
-
 const spiffLaunchCustomerPortal = (applicationKey) => {
   hostedExperienceOptions = {
     applicationKey,
@@ -92,13 +63,21 @@ const spiffLaunchCustomerPortal = (applicationKey) => {
   };
   const hostedExperience = new window.Spiff.HostedExperience(hostedExperienceOptions);
   hostedExperience.on('complete', async (result) => {
-    // Add bundle items to cart.
-    if (!result.items || result.items.length === 0) {
-      throw new Error('SpiffCommerce - Bundle has no items');
-    }
-    console.log("SpiffCommerce - Adding Bundle to Cart");
-    for(const item of result.items) {
-      await addTransactionToCart(item);
+    console.log(JSON.stringify(result, null, 2));
+
+    if (result.type === 'transaction') {
+      console.log("SpiffCommerce - Adding Transaction to Cart");
+      //await addTransactionToCart(result);
+    } else if (result.type === 'bundle') {
+      if (!result.items || result.items.length === 0) {
+        throw new Error('SpiffCommerce - Bundle has no items');
+      }
+      console.log("SpiffCommerce - Adding Bundle to Cart");
+      for(const item of result.items) {
+        //await addTransactionToCart(item);
+      }
+    } else {
+      throw new Error('SpiffCommerce - Unknown Experience Result Type');
     }
   });
   hostedExperience.execute({});
