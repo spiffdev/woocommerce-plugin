@@ -367,7 +367,6 @@ function spiff_create_cart_item() {
         // Marshall the data received from the Javascript post into a new cart item.
         // Everything except the product ID is used to add metadata to the cart item.
 
-        $woo_product_id = sanitize_text_field($details->wooProductId);
         $metadata = array();
 
         $transaction_id = sanitize_text_field($details->transactionId);
@@ -384,6 +383,7 @@ function spiff_create_cart_item() {
         if (!$transaction) {
             error_log('Failed to retrieve transaction ' . $transaction_id);
         } else {
+            $woo_product_id = sanitize_text_field($details->wooProductId ?? spiff_get_woo_id_from_transaction($transaction));
             $price_in_subunits = $transaction->data->baseCost + $transaction->data->optionsCost;
             $metadata['spiff_item_price'] = floatval($price_in_subunits / ( 10 ** wc_get_price_decimals()));
             $woocommerce->cart->add_to_cart($woo_product_id, 1, '', '', $metadata);
@@ -413,10 +413,11 @@ function spiff_get_woo_id_from_transaction($transaction) {
     $integration_product_id = $transaction->data->integrationProductId;
     $products = wc_get_products(array('limit' => -1));
     foreach($products as $product) {
-        if($integration_product_id == (esc_js($product->get_meta('spiff_integration_product_id')))) {
-            $product->get_id();
+        if($integration_product_id === (esc_js($product->get_meta('spiff_integration_product_id')))) {
+            return $product->get_id();
         }
     }
+    error_log('Failed to find product for integration product ID ' . $integration_product_id);
     return null;
 }
 
@@ -553,7 +554,10 @@ function spiff_post_order($access_key, $secret_key, $items, $woo_order_id) {
 function spiff_customer_portal_button_shortcode_handler($atts) {
     ob_start();
     ?>
-        <button class="spiff-customer-portal-button" onclick="window.spiffLaunchCustomerPortal('<?php echo esc_attr(get_option('spiff_application_key')) ?>')">
+        <button
+            class="spiff-customer-portal-button"
+            onclick="window.spiffLaunchCustomerPortal('<?php echo esc_attr(get_option('spiff_application_key')) ?>', '<?php echo esc_js(wc_get_cart_url()) ?>')"
+        >
             <?php echo esc_attr(get_option('spiff_customer_portal_button_text') ?: "Customer Portal") ?>
         </button>
     <?php

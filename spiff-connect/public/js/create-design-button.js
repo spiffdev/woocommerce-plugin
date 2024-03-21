@@ -38,7 +38,7 @@ const showSpiffTransaction = ( product, currencyCode, wooProductId, redirectUrl)
         wooProductId,
       })
     );
-    const aaa = await fetch(ajax_object.ajax_url, {
+    await fetch(ajax_object.ajax_url, {
       method: "POST",
       body: data,
     });
@@ -56,7 +56,23 @@ const createButton = (text, buttonConfig, buttonClass) => {
   return button;
 }
 
-const spiffLaunchCustomerPortal = (applicationKey) => {
+const addTransactionFromCustomerPortalToCart = async (item) => {
+    const data = new FormData();
+    data.append("action", "spiff_create_cart_item");
+    data.append(
+      "spiff_create_cart_item_details",
+      JSON.stringify({
+        exportedData: item.exportedData,
+        transactionId: item.transactionId,
+      })
+    );
+    await fetch(ajax_object.ajax_url, {
+      method: "POST",
+      body: data,
+    });
+}
+
+const spiffLaunchCustomerPortal = (applicationKey, redirectUrl) => {
   hostedExperienceOptions = {
     applicationKey,
     portalMode: true,
@@ -67,15 +83,17 @@ const spiffLaunchCustomerPortal = (applicationKey) => {
 
     if (result.type === 'transaction') {
       console.log("SpiffCommerce - Adding Transaction to Cart");
-      //await addTransactionToCart(result);
+      await addTransactionFromCustomerPortalToCart(result);
+      window.location = htmlDecode(redirectUrl);
     } else if (result.type === 'bundle') {
       if (!result.items || result.items.length === 0) {
         throw new Error('SpiffCommerce - Bundle has no items');
       }
       console.log("SpiffCommerce - Adding Bundle to Cart");
-      for(const item of result.items) {
-        //await addTransactionToCart(item);
+      for (const item of result.items) {
+        await addTransactionFromCustomerPortalToCart(item);
       }
+      window.location = htmlDecode(redirectUrl);
     } else {
       throw new Error('SpiffCommerce - Unknown Experience Result Type');
     }
