@@ -384,7 +384,7 @@ function spiff_create_cart_item() {
         if (!$transaction) {
             error_log('Failed to retrieve transaction ' . $transaction_id);
         } else {
-            $woo_product_id = sanitize_text_field($details->wooProductId);
+            $woo_product_id = sanitize_text_field($details->wooProductId ?? spiff_get_woo_id_from_transaction($transaction));
             $price_in_subunits = $transaction->product->basePrice + $transaction->priceModifierTotal;
             $metadata['spiff_item_price'] = floatval($price_in_subunits / ( 10 ** wc_get_price_decimals()));
             $woocommerce->cart->add_to_cart($woo_product_id, 1, '', '', $metadata);
@@ -400,7 +400,7 @@ function spiff_get_transaction($transaction_id) {
     $secret_key = get_option('spiff_api_secret');
     $body = json_encode(array(
         'operationName' => 'GetTransaction',
-        'query' => "query GetTransaction { transactions(ids: [\"$transaction_id\"]) { priceModifierTotal, product { basePrice } } }",
+        'query' => "query GetTransaction { transactions(ids: [\"$transaction_id\"]) { priceModifierTotal, product { basePrice, integrationProducts { id } } } }",
     ));
     $headers = spiff_request_headers($access_key, $secret_key, $body, SPIFF_GRAPHQL_PATH);
     $response = wp_remote_post($url, array(
@@ -413,19 +413,18 @@ function spiff_get_transaction($transaction_id) {
     return $decoded->data->transactions[0];
 }
 
-/*
 function spiff_get_woo_id_from_transaction($transaction) {
-    $integration_product_id = $transaction->data->integrationProductId;
     $products = wc_get_products(array('limit' => -1));
-    foreach($products as $product) {
-        if($integration_product_id === (esc_js($product->get_meta('spiff_integration_product_id')))) {
-            return $product->get_id();
+    foreach ($products as $product) {
+        foreach ($transaction->product->integrationProducts as $integration_product) {
+            if($integration_product->id === (esc_js($product->get_meta('spiff_integration_product_id')))) {
+                return $product->get_id();
+            }
         }
     }
     error_log('Failed to find product for integration product ID ' . $integration_product_id);
     return null;
 }
-*/
 
 /**
  * Update cart item price to reflect option costs.
