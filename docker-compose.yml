@@ -9,6 +9,7 @@ services:
       - 8888:80
     environment:
       SPIFF_API_BASE: 'http://host.docker.internal:8080'
+      SPIFF_API_US_BASE: 'http://host.docker.internal:8080'
       WORDPRESS_DB_HOST: db
       WORDPRESS_DB_USER: exampleuser
       WORDPRESS_DB_PASSWORD: examplepass
