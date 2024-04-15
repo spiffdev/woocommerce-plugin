@@ -139,6 +139,16 @@ function spiff_admin_menu_html() {
             <td><input autocomplete=off type="text" name="spiff_application_key" value="<?php echo esc_attr(get_option('spiff_application_key')); ?>" /></td>
             </tr>
         </table>
+        <p style="font-size: 16px;margin-bottom: 30px;position: relative;">Ensure that you are using the Spiff infrastructure that your account was created against.</p>
+        <table class="form-table">
+            <tr valign="top">
+            <th scope="row">Infrastructure</th>
+            <td><select name="spiff_infrastructure">
+                <option value="AU" <?php echo selected("AU", get_option("spiff_infrastructure") ?? "AU", false); ?>>Australia</option>
+                <option value="US" <?php echo selected("US", get_option("spiff_infrastructure"), false); ?>>United States</option>
+            </select></td>
+            </tr>
+        </table>
 
         <h2 style="font-size: 24px;line-height: 29px;position: relative;">Cart</h2>
         <table class="form-table">
