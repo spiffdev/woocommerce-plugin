@@ -16,6 +16,14 @@ define("SPIFF_API_ORDERS_PATH", "/api/v2/orders");
 define("SPIFF_API_TRANSACTIONS_PATH", "/api/transactions");
 define("SPIFF_GRAPHQL_PATH", "/graphql");
 
+// Get base API URL based on infrastructure choice.
+function spiff_get_base_api_url() {
+    if (get_option('spiff_application_key') === "US") {
+        return SPIFF_API_US_BASE;
+    }
+    return SPIFF_API_BASE;
+}
+
 /**
  * Activation hook.
  */
@@ -49,7 +57,7 @@ function spiff_activation_hook() {
       $headers = array(
         'Content-Type' => 'application/json',
       );
-      wp_remote_post(SPIFF_API_BASE . SPIFF_API_INSTALLS_PATH, array(
+      wp_remote_post(spiff_get_base_api_url() . SPIFF_API_INSTALLS_PATH, array(
         'body' => $body,
         'headers' => $headers
       ));
@@ -72,6 +80,7 @@ function spiff_register_admin_settings() {
     register_setting('spiff-settings-group', 'spiff_api_key');
     register_setting('spiff-settings-group', 'spiff_api_secret');
     register_setting('spiff-settings-group', 'spiff_application_key');
+    register_setting('spiff-settings-group', 'spiff_infrastructure');
 
     register_setting('spiff-settings-group', 'spiff_show_customer_selections_in_cart');
     register_setting('spiff-settings-group', 'spiff_show_preview_images_in_cart');
@@ -395,7 +404,7 @@ function spiff_create_cart_item() {
 
 // Get the data associated with a transaction.
 function spiff_get_transaction($transaction_id) {
-    $url = SPIFF_API_BASE . SPIFF_GRAPHQL_PATH;
+    $url = spiff_get_base_api_url() . SPIFF_GRAPHQL_PATH;
     $access_key = get_option('spiff_api_key');
     $secret_key = get_option('spiff_api_secret');
     $body = json_encode(array(
@@ -471,7 +480,7 @@ if (get_option('spiff_show_preview_images_in_cart')) {
 }
 
 function spiff_get_transaction_image($transaction_id) {
-    $url = SPIFF_API_BASE . SPIFF_API_TRANSACTIONS_PATH . '/' . $transaction_id . '/image';
+    $url = spiff_get_base_api_url() . SPIFF_API_TRANSACTIONS_PATH . '/' . $transaction_id . '/image';
     $response = wp_remote_get($url, array('redirection' => 0));
     $response_location_header = wp_remote_retrieve_header($response, 'location');
     if ($response_location_header === '') {
@@ -542,7 +551,7 @@ function spiff_post_order($access_key, $secret_key, $items, $woo_order_id) {
         'orderItems' => $items
     ));
     $headers = spiff_request_headers($access_key, $secret_key, $body, SPIFF_API_ORDERS_PATH);
-    $response = wp_remote_post(SPIFF_API_BASE . SPIFF_API_ORDERS_PATH, array(
+    $response = wp_remote_post(spiff_get_base_api_url() . SPIFF_API_ORDERS_PATH, array(
         'body' => $body,
         'headers' => $headers,
     ));
