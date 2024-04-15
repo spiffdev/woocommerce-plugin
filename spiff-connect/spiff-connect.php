@@ -18,7 +18,7 @@ define("SPIFF_GRAPHQL_PATH", "/graphql");
 
 // Get base API URL based on infrastructure choice.
 function spiff_get_base_api_url() {
-    if (get_option('spiff_application_key') === "US") {
+    if (get_option('spiff_infrastructure') === "US") {
         return SPIFF_API_US_BASE;
     }
     return SPIFF_API_BASE;
