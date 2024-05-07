@@ -550,15 +550,15 @@ function spiff_create_order($order_id) {
     if (!empty($items)) {
         $access_key = get_option('spiff_api_key');
         $secret_key = get_option('spiff_api_secret');
-        spiff_post_order($access_key, $secret_key, $items, $order->get_id());
+        spiff_post_order($access_key, $secret_key, $items, $order->get_id(), $order->is_paid());
     }
 }
 
 // Craft the request to the Spiff orders endpoint.
-function spiff_post_order($access_key, $secret_key, $items, $woo_order_id) {
+function spiff_post_order($access_key, $secret_key, $items, $woo_order_id, $paid) {
     $body = json_encode(array(
         'externalId' => $woo_order_id,
-        'autoPrint' => false,
+        'paid' => $paid,
         'orderItems' => $items
     ));
     $headers = spiff_request_headers($access_key, $secret_key, $body, SPIFF_API_ORDERS_PATH);
