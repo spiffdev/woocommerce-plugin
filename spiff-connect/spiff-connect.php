@@ -354,7 +354,7 @@ function spiff_append_create_design_button_on_product_page() {
         'width' => esc_attr(get_option('spiff_width') ?: "100%"),
         'height' => esc_attr(get_option('spiff_height') ?: "50px")
     ));
-
+    $application_key = esc_js(get_option('spiff_application_key'));
 
     if ($product->get_meta('spiff_enabled') === 'yes') {
         ?>
@@ -365,7 +365,8 @@ function spiff_append_create_design_button_on_product_page() {
                 "<?php echo $integration_product_id_js; ?>",
                 "<?php echo $currency_code; ?>",
                 "<?php echo $cart_url; ?>",
-                <?php echo $button_config; ?>
+                <?php echo $button_config; ?>,
+                "<?php echo $application_key ?>"
             )
             </script>
         <?php
