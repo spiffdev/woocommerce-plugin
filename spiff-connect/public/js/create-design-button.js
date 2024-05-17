@@ -3,7 +3,7 @@ const htmlDecode = input => {
   return document.documentElement.textContent;
 };
 
-const spiffAppendCreateDesignButton = (wooProductId, integrationProductId, currencyCode, redirectUrl, buttonConfig) => {
+const spiffAppendCreateDesignButton = (wooProductId, integrationProductId, currencyCode, redirectUrl, buttonConfig, applicationKey) => {
   const product = new window.Spiff.IntegrationProduct(integrationProductId);
   const buttonClass = "test-create-design";
 
@@ -13,17 +13,18 @@ const spiffAppendCreateDesignButton = (wooProductId, integrationProductId, curre
         const button = createButton(buttonConfig.personalizeButtonText, buttonConfig, buttonClass);
         container.appendChild(button);
 
-        button.onclick = () => showSpiffTransaction(product, currencyCode, wooProductId, redirectUrl);
+        button.onclick = () => showSpiffTransaction(product, currencyCode, wooProductId, redirectUrl, applicationKey);
       });
   });
 
   product.confirmActive();
 };
 
-const showSpiffTransaction = ( product, currencyCode, wooProductId, redirectUrl) => {
+const showSpiffTransaction = (product, currencyCode, wooProductId, redirectUrl, applicationKey) => {
   const hostedExperienceOptions = {
       presentmentCurrency: currencyCode,
-      product: product,
+      product,
+      applicationKey: applicationKey ?? undefined,
   };
   const hostedExperience = new window.Spiff.HostedExperience(hostedExperienceOptions);
   hostedExperience.on("complete", async (result) => {
