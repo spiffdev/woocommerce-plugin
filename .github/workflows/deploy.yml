@@ -76,6 +76,6 @@ jobs:
                 svn add trunk/* || echo 'Added some targets that are already under version control.'
                 cp -r ../assets/* assets/
                 svn add assets/* || echo 'Added some targets that are already under version control.'
-                svn --username ${{ secrets.SVN_CREDS_USR }} --password ${{ secrets.SVN_CREDS_PSW }} ci -m "Version ${VERSION}"
+                svn --username ${{ secrets.SVN_CREDS_USR }} --password '${{ secrets.SVN_CREDS_PSW }}' ci -m "Version ${VERSION}"
                 svn cp trunk tags/${VERSION}
-                svn --username ${{ secrets.SVN_CREDS_USR }} --password ${{ secrets.SVN_CREDS_PSW }} ci -m "Tag Version ${VERSION}"
+                svn --username ${{ secrets.SVN_CREDS_USR }} --password '${{ secrets.SVN_CREDS_PSW }}' ci -m "Tag Version ${VERSION}"
