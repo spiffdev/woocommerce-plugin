@@ -9,7 +9,8 @@ License: GPL3
 
 require plugin_dir_path(__FILE__) . 'includes/spiff-connect-requests.php';
 
-define("SPIFF_API_BASE", getenv("SPIFF_API_BASE"));
+define("SPIFF_API_BASE", getenv("SPIFF_API_BASE")); // Legacy AU
+define("SPIFF_API_AP_BASE", getenv("SPIFF_API_AP_BASE"));
 define("SPIFF_API_US_BASE", getenv("SPIFF_API_US_BASE"));
 define("SPIFF_API_INSTALLS_PATH", "/api/installs");
 define("SPIFF_API_ORDERS_PATH", "/api/v2/orders");
@@ -18,6 +19,9 @@ define("SPIFF_GRAPHQL_PATH", "/graphql");
 
 // Get base API URL based on infrastructure choice.
 function spiff_get_base_api_url() {
+    if (get_option('spiff_infrastructure') === "AP") {
+        return SPIFF_API_AP_BASE;
+    }
     if (get_option('spiff_infrastructure') === "US") {
         return SPIFF_API_US_BASE;
     }
@@ -145,7 +149,8 @@ function spiff_admin_menu_html() {
             <tr valign="top">
             <th scope="row">Infrastructure</th>
             <td><select name="spiff_infrastructure">
-                <option value="AU" <?php echo selected("AU", get_option("spiff_infrastructure") ?? "AU", false); ?>>Australia</option>
+                <option value="AP" <?php echo selected("AP", get_option("spiff_infrastructure"), false); ?>>Australia</option>
+                <option value="AU" <?php echo selected("AU", get_option("spiff_infrastructure") ?? "AU", false); ?>>Australia (Legacy)</option>
                 <option value="US" <?php echo selected("US", get_option("spiff_infrastructure"), false); ?>>United States</option>
             </select></td>
             </tr>
