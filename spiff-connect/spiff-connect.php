@@ -303,7 +303,10 @@ function spiff_enqueue_ecommerce_client() {
         array(),
         null
     );
-    wp_localize_script('spiff-create-design-button', 'ajax_object', array('ajax_url' => admin_url( 'admin-ajax.php' )));
+    wp_localize_script('spiff-create-design-button', 'ajax_object', array(
+        'ajax_url' => admin_url( 'admin-ajax.php' ),
+        'region_code' => esc_js(strtolower(get_option('spiff_infrastructure') ?? "AU"))
+    ));
 }
 
 /**

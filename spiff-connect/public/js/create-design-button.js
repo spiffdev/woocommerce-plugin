@@ -100,5 +100,6 @@ const spiffLaunchCustomerPortal = (applicationKey, redirectUrl) => {
   hostedExperience.execute({});
 };
 
+window.Spiff.setRegion(ajax_object.region_code);
 window.spiffAppendCreateDesignButton = spiffAppendCreateDesignButton;
 window.spiffLaunchCustomerPortal = spiffLaunchCustomerPortal;
