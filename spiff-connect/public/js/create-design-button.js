@@ -45,6 +45,7 @@ const showSpiffTransaction = (product, currencyCode, wooProductId, redirectUrl, 
     });
     window.location = htmlDecode(redirectUrl);
   });
+  hostedExperience.on('quit', () => {}); // Need callback even if empty to set executing flag to false.
   hostedExperience.execute();
 }
 
@@ -97,6 +98,7 @@ const spiffLaunchCustomerPortal = (applicationKey, redirectUrl) => {
       throw new Error('SpiffCommerce - Unknown Experience Result Type');
     }
   });
+  hostedExperience.on('quit', () => {}); // Need callback even if empty to set executing flag to false.
   hostedExperience.execute({});
 };
 
