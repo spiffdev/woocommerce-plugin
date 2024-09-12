@@ -44,7 +44,7 @@ jobs:
 
             - name: Pull API File
               run: |
-                [[ ${{ github.event.inputs.environment }} = "development" ]] && API_URL='https://assets.app.dev.spiff.com.au/api.js' || API_URL='https://assets.spiff.com.au/api.js'
+                [[ ${{ github.event.inputs.environment }} = "development" ]] && API_URL='https://assets.aumelbdev.spiffcommerce.com/api.js' || API_URL='https://assets.us.spiffcommerce.com/shopify.js'
                 curl $API_URL > spiff-connect/public/js/api.js
 
             - name: Make Zip File
