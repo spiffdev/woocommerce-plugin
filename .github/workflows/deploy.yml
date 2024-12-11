@@ -70,6 +70,7 @@ jobs:
       - name: Commit to Subversion Repo (prod-only)
         if: github.event.inputs.environment == 'production'
         run: |
+          sudo apt-get install subversion -y
           export VERSION=$(cat VERSION)
           svn co https://plugins.svn.wordpress.org/spiff-3d-product-customizer svn-repo
           cd svn-repo
