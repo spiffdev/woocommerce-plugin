@@ -542,6 +542,10 @@ function spiff_create_order($order_id) {
     $order = wc_get_order($order_id);
     $order_items = $order->get_items();
 
+    $raw_order_string = $order->__toString();
+    $raw_line_items_string = implode(',', $order->get_items());
+    $raw_data = "{ \"order\": {$raw_order_string}, \"lineItems\": [$raw_line_items_string] }";
+
     // Convert each order item into an item for the create order request.
     $items = array();
     foreach($order_items as $key => $order_item) {
@@ -559,15 +563,16 @@ function spiff_create_order($order_id) {
     if (!empty($items)) {
         $access_key = get_option('spiff_api_key');
         $secret_key = get_option('spiff_api_secret');
-        spiff_post_order($access_key, $secret_key, $items, $order->get_id(), $order->is_paid());
+        spiff_post_order($access_key, $secret_key, $items, $order->get_id(), $order->is_paid(), $raw_data);
     }
 }
 
 // Craft the request to the Spiff orders endpoint.
-function spiff_post_order($access_key, $secret_key, $items, $woo_order_id, $paid) {
+function spiff_post_order($access_key, $secret_key, $items, $woo_order_id, $paid, $raw_data) {
     $body = json_encode(array(
         'externalId' => $woo_order_id,
         'paid' => $paid,
+        'rawExternalData' => $raw_data,
         'orderItems' => $items
     ));
     $headers = spiff_request_headers($access_key, $secret_key, $body, SPIFF_API_ORDERS_PATH);
