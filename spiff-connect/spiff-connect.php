@@ -82,8 +82,6 @@ function spiff_create_admin_menu() {
 
 // Create all the global settings for the plugin.
 function spiff_register_admin_settings() {
-    register_setting('spiff-settings-group', 'spiff_api_key');
-    register_setting('spiff-settings-group', 'spiff_api_secret');
     register_setting('spiff-settings-group', 'spiff_application_key');
     register_setting('spiff-settings-group', 'spiff_infrastructure');
 
@@ -125,19 +123,6 @@ function spiff_admin_menu_html() {
         <?php do_settings_sections('spiff-settings-group'); ?>
 
         <h2 style="font-size: 24px;line-height: 29px;position: relative;">Integration Details</h2>
-        <p style="font-size: 16px;margin-bottom: 30px;position: relative;">Your integration's key and secret may be found on your integration's page in the Spiff Hub.</p>
-        <table class="form-table">
-            <tr valign="top">
-            <th scope="row">Access Key</th>
-            <td><input autocomplete=off type="text" name="spiff_api_key" value="<?php echo esc_attr(get_option('spiff_api_key')); ?>" /></td>
-            </tr>
-
-            <tr valign="top">
-            <th scope="row">Secret</th>
-            <td><input autocomplete=off type="password" name="spiff_api_secret" value="<?php echo esc_attr(get_option('spiff_api_secret')); ?>" /></td>
-            </tr>
-        </table>
-        <p style="font-size: 16px;margin-bottom: 30px;position: relative;">If using the customer portal feature, you'll need to create an application key on your integration's page in the Spiff Hub.</p>
         <table class="form-table">
             <tr valign="top">
             <th scope="row">Application Key</th>
@@ -150,7 +135,6 @@ function spiff_admin_menu_html() {
             <th scope="row">Infrastructure</th>
             <td><select name="spiff_infrastructure">
                 <option value="AP" <?php echo selected("AP", get_option("spiff_infrastructure"), false); ?>>Australia</option>
-                <option value="AU" <?php echo selected("AU", get_option("spiff_infrastructure") ?? "AU", false); ?>>Australia (Legacy)</option>
                 <option value="US" <?php echo selected("US", get_option("spiff_infrastructure"), false); ?>>United States</option>
             </select></td>
             </tr>
@@ -425,13 +409,12 @@ function spiff_create_cart_item() {
 // Get the data associated with a transaction.
 function spiff_get_transaction($transaction_id) {
     $url = spiff_get_base_api_url() . SPIFF_GRAPHQL_PATH;
-    $access_key = get_option('spiff_api_key');
-    $secret_key = get_option('spiff_api_secret');
+    $application_key = get_option('spiff_application_key');
     $body = json_encode(array(
         'operationName' => 'GetTransaction',
         'query' => "query GetTransaction { transactions(ids: [\"$transaction_id\"]) { priceModifierTotal, product { basePrice, integrationProducts { id } } } }",
     ));
-    $headers = spiff_request_headers($access_key, $secret_key, $body, SPIFF_GRAPHQL_PATH);
+    $headers = spiff_request_headers($application_key, $body, SPIFF_GRAPHQL_PATH);
     $response = wp_remote_post($url, array(
         'body' => $body,
         'headers' => $headers,
@@ -561,21 +544,20 @@ function spiff_create_order($order_id) {
 
     // Post the order.
     if (!empty($items)) {
-        $access_key = get_option('spiff_api_key');
-        $secret_key = get_option('spiff_api_secret');
-        spiff_post_order($access_key, $secret_key, $items, $order->get_id(), $order->is_paid(), $raw_data);
+        $application_key = get_option('spiff_application_key');
+        spiff_post_order($application_key, $items, $order->get_id(), $order->is_paid(), $raw_data);
     }
 }
 
 // Craft the request to the Spiff orders endpoint.
-function spiff_post_order($access_key, $secret_key, $items, $woo_order_id, $paid, $raw_data) {
+function spiff_post_order($application_key, $items, $woo_order_id, $paid, $raw_data) {
     $body = json_encode(array(
         'externalId' => $woo_order_id,
         'paid' => $paid,
         'rawExternalData' => $raw_data,
         'orderItems' => $items
     ));
-    $headers = spiff_request_headers($access_key, $secret_key, $body, SPIFF_API_ORDERS_PATH);
+    $headers = spiff_request_headers($application_key, $body, SPIFF_API_ORDERS_PATH);
     $response = wp_remote_post(spiff_get_base_api_url() . SPIFF_API_ORDERS_PATH, array(
         'body' => $body,
         'headers' => $headers,
