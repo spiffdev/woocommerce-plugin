@@ -11,7 +11,6 @@ require plugin_dir_path(__FILE__) . 'includes/spiff-connect-requests.php';
 
 define("SPIFF_API_AP_BASE", getenv("SPIFF_API_AP_BASE"));
 define("SPIFF_API_US_BASE", getenv("SPIFF_API_US_BASE"));
-define("SPIFF_API_INSTALLS_PATH", "/api/installs");
 define("SPIFF_API_ORDERS_PATH", "/api/v2/orders");
 define("SPIFF_API_TRANSACTIONS_PATH", "/api/transactions");
 define("SPIFF_GRAPHQL_PATH", "/graphql");
@@ -48,17 +47,23 @@ function spiff_activation_hook() {
       $last_name = get_user_meta($admin_id, 'last_name', true);
 
       $body = json_encode(array(
-          'type' => 'WooCommerce',
-          'shopName' => $shop_name,
-          'owner' => "$first_name $last_name",
-          'email' => $email,
-          'phone' => $phone
+          'operationName' => 'InstallNotify',
+          'query' => 'mutation InstallNotify($input: InstallNotifyInput!) { installNotify(input: $input) }',
+          'variables' => array(
+              'input' => array(
+                  'type' => 'WooCommerce',
+                  'shopName' => $shop_name,
+                  'owner' => "$first_name $last_name",
+                  'email' => $email,
+                  'phone' => $phone
+              )
+          )
       ));
       $headers = array(
         'Content-Type' => 'application/json',
       );
       // This is expected to always be Australia because the value hasn't been set yet.
-      wp_remote_post(spiff_get_base_api_url() . SPIFF_API_INSTALLS_PATH, array(
+      wp_remote_post(spiff_get_base_api_url() . SPIFF_GRAPHQL_PATH, array(
         'body' => $body,
         'headers' => $headers
       ));

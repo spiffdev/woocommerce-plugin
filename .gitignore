@@ -1,3 +1,4 @@
 spiff-connect/public/js/api.js
 tests/.phpunit.result.cache
 /vendor/
+.claude/
