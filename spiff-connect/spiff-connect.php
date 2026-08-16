@@ -12,7 +12,6 @@ require plugin_dir_path(__FILE__) . 'includes/spiff-connect-requests.php';
 define("SPIFF_API_AP_BASE", getenv("SPIFF_API_AP_BASE"));
 define("SPIFF_API_US_BASE", getenv("SPIFF_API_US_BASE"));
 define("SPIFF_API_ORDERS_PATH", "/api/v2/orders");
-define("SPIFF_API_TRANSACTIONS_PATH", "/api/transactions");
 define("SPIFF_GRAPHQL_PATH", "/graphql");
 
 // Get base API URL based on infrastructure choice.
@@ -484,13 +483,24 @@ if (get_option('spiff_show_preview_images_in_cart')) {
 }
 
 function spiff_get_transaction_image($transaction_id) {
-    $url = spiff_get_base_api_url() . SPIFF_API_TRANSACTIONS_PATH . '/' . $transaction_id . '/image';
-    $response = wp_remote_get($url, array('redirection' => 0));
-    $response_location_header = wp_remote_retrieve_header($response, 'location');
-    if ($response_location_header === '') {
+    $url = spiff_get_base_api_url() . SPIFF_GRAPHQL_PATH;
+    $application_key = get_option('spiff_application_key');
+    $body = json_encode(array(
+        'operationName' => 'GetTransactionPreviewImage',
+        'query' => 'query GetTransactionPreviewImage($ids: [String]!) { transactions(ids: $ids) { previewImageLink } }',
+        'variables' => array('ids' => array($transaction_id)),
+    ));
+    $headers = spiff_request_headers($application_key, $body, SPIFF_GRAPHQL_PATH);
+    $response = wp_remote_post($url, array(
+        'body' => $body,
+        'headers' => $headers,
+    ));
+    $decoded = json_decode(wp_remote_retrieve_body($response));
+    $preview_image_link = $decoded->data->transactions[0]->previewImageLink ?? null;
+    if (!$preview_image_link) {
       return null;
     }
-    return '<img src="' . $response_location_header . '" alt="preview" />';
+    return '<img src="' . esc_url($preview_image_link) . '" alt="preview" />';
 }
 
 function spiff_show_preview_image_in_cart($product_image, $cart_item, $cart_item_key) {
