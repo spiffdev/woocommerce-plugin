@@ -11,7 +11,6 @@ require plugin_dir_path(__FILE__) . 'includes/spiff-connect-requests.php';
 
 define("SPIFF_API_AP_BASE", getenv("SPIFF_API_AP_BASE"));
 define("SPIFF_API_US_BASE", getenv("SPIFF_API_US_BASE"));
-define("SPIFF_API_ORDERS_PATH", "/api/v2/orders");
 define("SPIFF_GRAPHQL_PATH", "/graphql");
 
 // Get base API URL based on infrastructure choice.
@@ -536,10 +535,6 @@ function spiff_create_order($order_id) {
     $order = wc_get_order($order_id);
     $order_items = $order->get_items();
 
-    $raw_order_string = $order->__toString();
-    $raw_line_items_string = implode(',', $order->get_items());
-    $raw_data = "{ \"order\": {$raw_order_string}, \"lineItems\": [$raw_line_items_string] }";
-
     // Convert each order item into an item for the create order request.
     $items = array();
     foreach($order_items as $key => $order_item) {
@@ -548,7 +543,7 @@ function spiff_create_order($order_id) {
             continue;
         }
         $item = array();
-        $item['amountToOrder'] = $order_item['qty'];
+        $item['amountToOrder'] = intval($order_item['qty']);
         $item['transactionId'] = $transaction_id;
         array_push($items, $item);
     }
@@ -556,26 +551,64 @@ function spiff_create_order($order_id) {
     // Post the order.
     if (!empty($items)) {
         $application_key = get_option('spiff_application_key');
-        spiff_post_order($application_key, $items, $order->get_id(), $order->is_paid(), $raw_data);
+        spiff_post_order($application_key, $items, $order->get_id(), $order->is_paid(), spiff_get_external_order_data($order));
     }
 }
 
-// Craft the request to the Spiff orders endpoint.
-function spiff_post_order($application_key, $items, $woo_order_id, $paid, $raw_data) {
+// Collect the details of the WooCommerce order to persist against the Spiff order.
+function spiff_get_external_order_data($order) {
+    return array(
+        'orderNumber' => (string) $order->get_order_number(),
+        'customerEmail' => $order->get_billing_email(),
+        'customerPhone' => $order->get_billing_phone(),
+        'billingAddress' => spiff_get_order_address($order, 'billing'),
+        'shippingAddress' => spiff_get_order_address($order, 'shipping'),
+        'discountCodes' => array_map('strval', $order->get_coupon_codes()),
+        'note' => $order->get_customer_note(),
+    );
+}
+
+// Marshall a WooCommerce order address into the shape the Spiff API expects.
+function spiff_get_order_address($order, $type) {
+    return array(
+        'address1' => $order->{"get_{$type}_address_1"}(),
+        'address2' => $order->{"get_{$type}_address_2"}(),
+        'city' => $order->{"get_{$type}_city"}(),
+        'company' => $order->{"get_{$type}_company"}(),
+        'country' => $order->{"get_{$type}_country"}(),
+        'countryCode' => $order->{"get_{$type}_country"}(),
+        'firstName' => $order->{"get_{$type}_first_name"}(),
+        'lastName' => $order->{"get_{$type}_last_name"}(),
+        'province' => $order->{"get_{$type}_state"}(),
+        'provinceCode' => $order->{"get_{$type}_state"}(),
+        'zip' => $order->{"get_{$type}_postcode"}(),
+    );
+}
+
+// Craft the request to create the order in Spiff.
+function spiff_post_order($application_key, $items, $woo_order_id, $paid, $external_data) {
+    $query = 'mutation OrderCreate($externalId: String, $paid: Boolean, $orderItems: [OrderItemInput]!, $externalData: ExternalOrderDataInput) {'
+        . ' orderCreate(externalId: $externalId, paid: $paid, orderItems: $orderItems, externalData: $externalData) { id } }';
     $body = json_encode(array(
-        'externalId' => $woo_order_id,
-        'paid' => $paid,
-        'rawExternalData' => $raw_data,
-        'orderItems' => $items
+        'operationName' => 'OrderCreate',
+        'query' => $query,
+        'variables' => array(
+            'externalId' => (string) $woo_order_id,
+            'paid' => $paid,
+            'orderItems' => $items,
+            'externalData' => $external_data,
+        ),
     ));
-    $headers = spiff_request_headers($application_key, $body, SPIFF_API_ORDERS_PATH);
-    $response = wp_remote_post(spiff_get_base_api_url() . SPIFF_API_ORDERS_PATH, array(
+    $headers = spiff_request_headers($application_key, $body, SPIFF_GRAPHQL_PATH);
+    $response = wp_remote_post(spiff_get_base_api_url() . SPIFF_GRAPHQL_PATH, array(
         'body' => $body,
         'headers' => $headers,
     ));
     $response_status = wp_remote_retrieve_response_code($response);
-    if ($response_status !== 201) {
-        error_log('Response status: ' . $response_status);
+    $response_body = wp_remote_retrieve_body($response);
+    $decoded = json_decode($response_body);
+    if ($response_status !== 200 || !empty($decoded->errors) || empty($decoded->data->orderCreate->id)) {
+        error_log('Failed to create Spiff order for WooCommerce order ' . $woo_order_id . ': ' . $response_body);
     }
 }
 
