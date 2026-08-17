@@ -13,12 +13,12 @@ define("SPIFF_API_AP_BASE", getenv("SPIFF_API_AP_BASE"));
 define("SPIFF_API_US_BASE", getenv("SPIFF_API_US_BASE"));
 define("SPIFF_GRAPHQL_PATH", "/graphql");
 
-// Get base API URL based on infrastructure choice.
-function spiff_get_base_api_url() {
+// Get GraphQL URL based on infrastructure choice.
+function spiff_get_graphql_url() {
     if (get_option('spiff_infrastructure') === "US") {
-        return SPIFF_API_US_BASE;
+        return SPIFF_API_US_BASE . SPIFF_GRAPHQL_PATH;
     }
-    return SPIFF_API_AP_BASE;
+    return SPIFF_API_AP_BASE . SPIFF_GRAPHQL_PATH;
 }
 
 /**
@@ -61,7 +61,7 @@ function spiff_activation_hook() {
         'Content-Type' => 'application/json',
       );
       // This is expected to always be Australia because the value hasn't been set yet.
-      wp_remote_post(spiff_get_base_api_url() . SPIFF_GRAPHQL_PATH, array(
+      wp_remote_post(spiff_get_graphql_url(), array(
         'body' => $body,
         'headers' => $headers
       ));
@@ -407,7 +407,7 @@ function spiff_create_cart_item() {
 
 // Get the data associated with a transaction.
 function spiff_get_transaction($transaction_id) {
-    $url = spiff_get_base_api_url() . SPIFF_GRAPHQL_PATH;
+    $url = spiff_get_graphql_url();
     $application_key = get_option('spiff_application_key');
     $body = json_encode(array(
         'operationName' => 'GetTransaction',
@@ -482,7 +482,7 @@ if (get_option('spiff_show_preview_images_in_cart')) {
 }
 
 function spiff_get_transaction_image($transaction_id) {
-    $url = spiff_get_base_api_url() . SPIFF_GRAPHQL_PATH;
+    $url = spiff_get_graphql_url();
     $application_key = get_option('spiff_application_key');
     $body = json_encode(array(
         'operationName' => 'GetTransactionPreviewImage',
@@ -600,7 +600,7 @@ function spiff_post_order($application_key, $items, $woo_order_id, $paid, $exter
         ),
     ));
     $headers = spiff_request_headers($application_key, $body, SPIFF_GRAPHQL_PATH);
-    $response = wp_remote_post(spiff_get_base_api_url() . SPIFF_GRAPHQL_PATH, array(
+    $response = wp_remote_post(spiff_get_graphql_url(), array(
         'body' => $body,
         'headers' => $headers,
     ));
