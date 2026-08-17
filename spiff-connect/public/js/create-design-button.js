@@ -28,7 +28,12 @@ const showSpiffTransaction = (product, currencyCode, wooProductId, redirectUrl, 
   };
   const hostedExperience = new window.Spiff.HostedExperience(hostedExperienceOptions);
   hostedExperience.on("complete", async (result) => {
-    const item = result.items[0];
+    let item;
+    if (result.type === "transaction") {
+      const item = result;
+    } else {
+      const item = result.items[0];
+    }
     // Handle the result of the workflow experience..
     const data = new FormData();
     data.append("action", "spiff_create_cart_item");
