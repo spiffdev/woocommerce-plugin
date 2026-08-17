@@ -30,9 +30,9 @@ const showSpiffTransaction = (product, currencyCode, wooProductId, redirectUrl, 
   hostedExperience.on("complete", async (result) => {
     let item;
     if (result.type === "transaction") {
-      const item = result;
+      item = result;
     } else {
-      const item = result.items[0];
+      item = result.items[0];
     }
     // Handle the result of the workflow experience..
     const data = new FormData();
