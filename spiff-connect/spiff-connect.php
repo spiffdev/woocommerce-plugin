@@ -9,23 +9,16 @@ License: GPL3
 
 require plugin_dir_path(__FILE__) . 'includes/spiff-connect-requests.php';
 
-define("SPIFF_API_BASE", getenv("SPIFF_API_BASE")); // Legacy AU
 define("SPIFF_API_AP_BASE", getenv("SPIFF_API_AP_BASE"));
 define("SPIFF_API_US_BASE", getenv("SPIFF_API_US_BASE"));
-define("SPIFF_API_INSTALLS_PATH", "/api/installs");
-define("SPIFF_API_ORDERS_PATH", "/api/v2/orders");
-define("SPIFF_API_TRANSACTIONS_PATH", "/api/transactions");
 define("SPIFF_GRAPHQL_PATH", "/graphql");
 
-// Get base API URL based on infrastructure choice.
-function spiff_get_base_api_url() {
-    if (get_option('spiff_infrastructure') === "AP") {
-        return SPIFF_API_AP_BASE;
-    }
+// Get GraphQL URL based on infrastructure choice.
+function spiff_get_graphql_url() {
     if (get_option('spiff_infrastructure') === "US") {
-        return SPIFF_API_US_BASE;
+        return SPIFF_API_US_BASE . SPIFF_GRAPHQL_PATH;
     }
-    return SPIFF_API_BASE;
+    return SPIFF_API_AP_BASE . SPIFF_GRAPHQL_PATH;
 }
 
 /**
@@ -52,17 +45,23 @@ function spiff_activation_hook() {
       $last_name = get_user_meta($admin_id, 'last_name', true);
 
       $body = json_encode(array(
-          'type' => 'WooCommerce',
-          'shopName' => $shop_name,
-          'owner' => "$first_name $last_name",
-          'email' => $email,
-          'phone' => $phone
+          'operationName' => 'InstallNotify',
+          'query' => 'mutation InstallNotify($input: InstallNotifyInput!) { installNotify(input: $input) }',
+          'variables' => array(
+              'input' => array(
+                  'type' => 'WooCommerce',
+                  'shopName' => $shop_name,
+                  'owner' => "$first_name $last_name",
+                  'email' => $email,
+                  'phone' => $phone
+              )
+          )
       ));
       $headers = array(
         'Content-Type' => 'application/json',
       );
       // This is expected to always be Australia because the value hasn't been set yet.
-      wp_remote_post(spiff_get_base_api_url() . SPIFF_API_INSTALLS_PATH, array(
+      wp_remote_post(spiff_get_graphql_url(), array(
         'body' => $body,
         'headers' => $headers
       ));
@@ -82,8 +81,6 @@ function spiff_create_admin_menu() {
 
 // Create all the global settings for the plugin.
 function spiff_register_admin_settings() {
-    register_setting('spiff-settings-group', 'spiff_api_key');
-    register_setting('spiff-settings-group', 'spiff_api_secret');
     register_setting('spiff-settings-group', 'spiff_application_key');
     register_setting('spiff-settings-group', 'spiff_infrastructure');
 
@@ -125,19 +122,6 @@ function spiff_admin_menu_html() {
         <?php do_settings_sections('spiff-settings-group'); ?>
 
         <h2 style="font-size: 24px;line-height: 29px;position: relative;">Integration Details</h2>
-        <p style="font-size: 16px;margin-bottom: 30px;position: relative;">Your integration's key and secret may be found on your integration's page in the Spiff Hub.</p>
-        <table class="form-table">
-            <tr valign="top">
-            <th scope="row">Access Key</th>
-            <td><input autocomplete=off type="text" name="spiff_api_key" value="<?php echo esc_attr(get_option('spiff_api_key')); ?>" /></td>
-            </tr>
-
-            <tr valign="top">
-            <th scope="row">Secret</th>
-            <td><input autocomplete=off type="password" name="spiff_api_secret" value="<?php echo esc_attr(get_option('spiff_api_secret')); ?>" /></td>
-            </tr>
-        </table>
-        <p style="font-size: 16px;margin-bottom: 30px;position: relative;">If using the customer portal feature, you'll need to create an application key on your integration's page in the Spiff Hub.</p>
         <table class="form-table">
             <tr valign="top">
             <th scope="row">Application Key</th>
@@ -150,7 +134,6 @@ function spiff_admin_menu_html() {
             <th scope="row">Infrastructure</th>
             <td><select name="spiff_infrastructure">
                 <option value="AP" <?php echo selected("AP", get_option("spiff_infrastructure"), false); ?>>Australia</option>
-                <option value="AU" <?php echo selected("AU", get_option("spiff_infrastructure") ?? "AU", false); ?>>Australia (Legacy)</option>
                 <option value="US" <?php echo selected("US", get_option("spiff_infrastructure"), false); ?>>United States</option>
             </select></td>
             </tr>
@@ -424,14 +407,13 @@ function spiff_create_cart_item() {
 
 // Get the data associated with a transaction.
 function spiff_get_transaction($transaction_id) {
-    $url = spiff_get_base_api_url() . SPIFF_GRAPHQL_PATH;
-    $access_key = get_option('spiff_api_key');
-    $secret_key = get_option('spiff_api_secret');
+    $url = spiff_get_graphql_url();
+    $application_key = get_option('spiff_application_key');
     $body = json_encode(array(
         'operationName' => 'GetTransaction',
         'query' => "query GetTransaction { transactions(ids: [\"$transaction_id\"]) { priceModifierTotal, product { basePrice, integrationProducts { id } } } }",
     ));
-    $headers = spiff_request_headers($access_key, $secret_key, $body, SPIFF_GRAPHQL_PATH);
+    $headers = spiff_request_headers($application_key, $body, SPIFF_GRAPHQL_PATH);
     $response = wp_remote_post($url, array(
         'body' => $body,
         'headers' => $headers,
@@ -500,13 +482,24 @@ if (get_option('spiff_show_preview_images_in_cart')) {
 }
 
 function spiff_get_transaction_image($transaction_id) {
-    $url = spiff_get_base_api_url() . SPIFF_API_TRANSACTIONS_PATH . '/' . $transaction_id . '/image';
-    $response = wp_remote_get($url, array('redirection' => 0));
-    $response_location_header = wp_remote_retrieve_header($response, 'location');
-    if ($response_location_header === '') {
+    $url = spiff_get_graphql_url();
+    $application_key = get_option('spiff_application_key');
+    $body = json_encode(array(
+        'operationName' => 'GetTransactionPreviewImage',
+        'query' => 'query GetTransactionPreviewImage($ids: [String]!) { transactions(ids: $ids) { previewImageLink } }',
+        'variables' => array('ids' => array($transaction_id)),
+    ));
+    $headers = spiff_request_headers($application_key, $body, SPIFF_GRAPHQL_PATH);
+    $response = wp_remote_post($url, array(
+        'body' => $body,
+        'headers' => $headers,
+    ));
+    $decoded = json_decode(wp_remote_retrieve_body($response));
+    $preview_image_link = $decoded->data->transactions[0]->previewImageLink ?? null;
+    if (!$preview_image_link) {
       return null;
     }
-    return '<img src="' . $response_location_header . '" alt="preview" />';
+    return '<img src="' . esc_url($preview_image_link) . '" alt="preview" />';
 }
 
 function spiff_show_preview_image_in_cart($product_image, $cart_item, $cart_item_key) {
@@ -542,10 +535,6 @@ function spiff_create_order($order_id) {
     $order = wc_get_order($order_id);
     $order_items = $order->get_items();
 
-    $raw_order_string = $order->__toString();
-    $raw_line_items_string = implode(',', $order->get_items());
-    $raw_data = "{ \"order\": {$raw_order_string}, \"lineItems\": [$raw_line_items_string] }";
-
     // Convert each order item into an item for the create order request.
     $items = array();
     foreach($order_items as $key => $order_item) {
@@ -554,35 +543,72 @@ function spiff_create_order($order_id) {
             continue;
         }
         $item = array();
-        $item['amountToOrder'] = $order_item['qty'];
+        $item['amountToOrder'] = intval($order_item['qty']);
         $item['transactionId'] = $transaction_id;
         array_push($items, $item);
     }
 
     // Post the order.
     if (!empty($items)) {
-        $access_key = get_option('spiff_api_key');
-        $secret_key = get_option('spiff_api_secret');
-        spiff_post_order($access_key, $secret_key, $items, $order->get_id(), $order->is_paid(), $raw_data);
+        $application_key = get_option('spiff_application_key');
+        spiff_post_order($application_key, $items, $order->get_id(), $order->is_paid(), spiff_get_external_order_data($order));
     }
 }
 
-// Craft the request to the Spiff orders endpoint.
-function spiff_post_order($access_key, $secret_key, $items, $woo_order_id, $paid, $raw_data) {
+// Collect the details of the WooCommerce order to persist against the Spiff order.
+function spiff_get_external_order_data($order) {
+    return array(
+        'orderNumber' => (string) $order->get_order_number(),
+        'customerEmail' => $order->get_billing_email(),
+        'customerPhone' => $order->get_billing_phone(),
+        'billingAddress' => spiff_get_order_address($order, 'billing'),
+        'shippingAddress' => spiff_get_order_address($order, 'shipping'),
+        'discountCodes' => array_map('strval', $order->get_coupon_codes()),
+        'note' => $order->get_customer_note(),
+    );
+}
+
+// Marshall a WooCommerce order address into the shape the Spiff API expects.
+function spiff_get_order_address($order, $type) {
+    return array(
+        'address1' => $order->{"get_{$type}_address_1"}(),
+        'address2' => $order->{"get_{$type}_address_2"}(),
+        'city' => $order->{"get_{$type}_city"}(),
+        'company' => $order->{"get_{$type}_company"}(),
+        'country' => $order->{"get_{$type}_country"}(),
+        'countryCode' => $order->{"get_{$type}_country"}(),
+        'firstName' => $order->{"get_{$type}_first_name"}(),
+        'lastName' => $order->{"get_{$type}_last_name"}(),
+        'province' => $order->{"get_{$type}_state"}(),
+        'provinceCode' => $order->{"get_{$type}_state"}(),
+        'zip' => $order->{"get_{$type}_postcode"}(),
+    );
+}
+
+// Craft the request to create the order in Spiff.
+function spiff_post_order($application_key, $items, $woo_order_id, $paid, $external_data) {
+    $query = 'mutation OrderCreate($externalId: String, $paid: Boolean, $orderItems: [OrderItemInput]!, $externalData: ExternalOrderDataInput) {'
+        . ' orderCreate(externalId: $externalId, paid: $paid, orderItems: $orderItems, externalData: $externalData) { id } }';
     $body = json_encode(array(
-        'externalId' => $woo_order_id,
-        'paid' => $paid,
-        'rawExternalData' => $raw_data,
-        'orderItems' => $items
+        'operationName' => 'OrderCreate',
+        'query' => $query,
+        'variables' => array(
+            'externalId' => (string) $woo_order_id,
+            'paid' => $paid,
+            'orderItems' => $items,
+            'externalData' => $external_data,
+        ),
     ));
-    $headers = spiff_request_headers($access_key, $secret_key, $body, SPIFF_API_ORDERS_PATH);
-    $response = wp_remote_post(spiff_get_base_api_url() . SPIFF_API_ORDERS_PATH, array(
+    $headers = spiff_request_headers($application_key, $body, SPIFF_GRAPHQL_PATH);
+    $response = wp_remote_post(spiff_get_graphql_url(), array(
         'body' => $body,
         'headers' => $headers,
     ));
     $response_status = wp_remote_retrieve_response_code($response);
-    if ($response_status !== 201) {
-        error_log('Response status: ' . $response_status);
+    $response_body = wp_remote_retrieve_body($response);
+    $decoded = json_decode($response_body);
+    if ($response_status !== 200 || !empty($decoded->errors) || empty($decoded->data->orderCreate->id)) {
+        error_log('Failed to create Spiff order for WooCommerce order ' . $woo_order_id . ': ' . $response_body);
     }
 }
 
