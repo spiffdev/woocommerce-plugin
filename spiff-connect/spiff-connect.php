@@ -551,7 +551,9 @@ function spiff_create_order($order_id) {
     // Post the order.
     if (!empty($items)) {
         $application_key = get_option('spiff_application_key');
-        spiff_post_order($application_key, $items, $order->get_id(), $order->is_paid(), spiff_get_external_order_data($order));
+        // Allow the ID shown as the order number in Spiff to be customised, e.g. to use a custom order number.
+        $external_id = apply_filters('spiff_order_external_id', $order->get_id(), $order);
+        spiff_post_order($application_key, $items, $external_id, $order->is_paid(), spiff_get_external_order_data($order));
     }
 }
 

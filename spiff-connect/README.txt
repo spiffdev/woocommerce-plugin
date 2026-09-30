@@ -145,7 +145,15 @@ All apparel, Shoes, Promotional Products, Homewares, sporting equipment, FMCG (a
 
     * Check the "Enable Spiff" checkbox.
 
-    * Enter the ID of the corresponding integration product by clicking copy Integration ID to clipboard from the corresponding product on the integrations page. 
+    * Enter the ID of the corresponding integration product by clicking copy Integration ID to clipboard from the corresponding product on the integrations page.
+
+###**Customising the Spiff order number**
+
+By default, orders are sent to Spiff with the WooCommerce order ID as their order number. To use a different value, such as a custom order number, add a filter to your theme's functions.php:
+
+`add_filter('spiff_order_external_id', function ($external_id, $order) {
+    return $order->get_order_number();
+}, 10, 2);`
 
 
 If you have any problems contact spiff support [https://spiff3d.com/contact-us/](https://spiff3d.com/contact-us/) or visit [https://help.spiff.com.au](https://help.spiff.com.au)
