@@ -96,6 +96,71 @@ final class CreateOrderTest extends TestCase {
         $this->assertCount(0, $GLOBALS['spiff_test_requests']);
     }
 
+    public function testSendsCustomerDetailsInExternalData() {
+        $GLOBALS['spiff_test_orders'][123] = new Spiff_Test_Order(123, 'VEG-1042', array($this->spiffItem('transaction-1')), true, array(
+            'billing_email' => 'jamie@example.test',
+            'billing_phone' => '0400 000 000',
+            'customer_note' => 'Leave at the door',
+            'coupon_codes' => array('SAVE10'),
+            'billing_first_name' => 'Jamie',
+            'billing_city' => 'Melbourne',
+            'shipping_address_1' => '1 Example St',
+            'shipping_state' => 'VIC',
+            'shipping_postcode' => '3000',
+            'shipping_country' => 'AU',
+        ));
+
+        spiff_create_order(123);
+
+        $external_data = $this->sentVariables()['externalData'];
+        $this->assertSame('jamie@example.test', $external_data['customerEmail']);
+        $this->assertSame('0400 000 000', $external_data['customerPhone']);
+        $this->assertSame('Leave at the door', $external_data['note']);
+        $this->assertSame(array('SAVE10'), $external_data['discountCodes']);
+        $this->assertSame('Jamie', $external_data['billingAddress']['firstName']);
+        $this->assertSame('Melbourne', $external_data['billingAddress']['city']);
+        $this->assertSame('1 Example St', $external_data['shippingAddress']['address1']);
+        $this->assertSame('VIC', $external_data['shippingAddress']['province']);
+        $this->assertSame('VIC', $external_data['shippingAddress']['provinceCode']);
+        $this->assertSame('3000', $external_data['shippingAddress']['zip']);
+        $this->assertSame('AU', $external_data['shippingAddress']['country']);
+        $this->assertSame('AU', $external_data['shippingAddress']['countryCode']);
+    }
+
+    public function testSendsOrderCreateMutationToAustraliaByDefault() {
+        $this->addOrder(123, 'VEG-1042', array($this->spiffItem('transaction-1')));
+
+        spiff_create_order(123);
+
+        $request = $GLOBALS['spiff_test_requests'][0];
+        $this->assertSame(SPIFF_TEST_AP_BASE . '/graphql', $request['url']);
+        $this->assertSame('OrderCreate', json_decode($request['args']['body'], true)['operationName']);
+    }
+
+    public function testSendsOrderToUnitedStatesWhenConfigured() {
+        $GLOBALS['spiff_test_options']['spiff_infrastructure'] = 'US';
+        $this->addOrder(123, 'VEG-1042', array($this->spiffItem('transaction-1')));
+
+        spiff_create_order(123);
+
+        $this->assertSame(SPIFF_TEST_US_BASE . '/graphql', $GLOBALS['spiff_test_requests'][0]['url']);
+    }
+
+    public function testFailedRequestDoesNotStopCheckout() {
+        spiff_test_queue_response(array('errors' => array(array('message' => 'Unauthorised'))), 401);
+        $this->addOrder(123, 'VEG-1042', array($this->spiffItem('transaction-1')));
+        $log = ini_get('error_log');
+        ini_set('error_log', '/dev/null');
+
+        try {
+            spiff_create_order(123);
+        } finally {
+            ini_set('error_log', $log);
+        }
+
+        $this->assertCount(1, $GLOBALS['spiff_test_requests']);
+    }
+
     public function testSendsPaidFlagAndApplicationKey() {
         $this->addOrder(123, 'VEG-1042', array($this->spiffItem('transaction-1')), false);
 
