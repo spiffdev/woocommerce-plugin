@@ -610,8 +610,24 @@ function spiff_post_order($application_key, $items, $woo_order_id, $paid, $exter
     $response_body = wp_remote_retrieve_body($response);
     $decoded = json_decode($response_body);
     if ($response_status !== 200 || !empty($decoded->errors) || empty($decoded->data->orderCreate->id)) {
-        error_log('Failed to create Spiff order for WooCommerce order ' . $woo_order_id . ': ' . $response_body);
+        $error = is_wp_error($response) ? $response->get_error_message() : $response_body;
+        spiff_report_order_failure($woo_order_id, $response_status, $error, $external_data);
     }
+}
+
+// Surface a failed order sync in the WooCommerce logs and on the order itself, so it isn't silently lost.
+function spiff_report_order_failure($woo_order_id, $response_status, $error, $external_data) {
+    $message = 'Failed to create Spiff order for WooCommerce order ' . $woo_order_id . ' (HTTP ' . $response_status . '): ' . $error;
+    wc_get_logger()->error($message, array('source' => 'spiff-connect'));
+
+    // The ID may have been customised via spiff_order_external_id, so only annotate the order if it is the one we sent.
+    $order = wc_get_order($woo_order_id);
+    if (!$order || (string) $order->get_order_number() !== $external_data['orderNumber']) {
+        return;
+    }
+    $order->add_order_note('Failed to send this order to Spiff. See the spiff-connect log under WooCommerce > Status > Logs.');
+    $order->update_meta_data('_spiff_sync_failed', 'yes');
+    $order->save();
 }
 
 /**

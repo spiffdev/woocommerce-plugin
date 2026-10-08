@@ -149,16 +149,67 @@ final class CreateOrderTest extends TestCase {
     public function testFailedRequestDoesNotStopCheckout() {
         spiff_test_queue_response(array('errors' => array(array('message' => 'Unauthorised'))), 401);
         $this->addOrder(123, 'VEG-1042', array($this->spiffItem('transaction-1')));
-        $log = ini_get('error_log');
-        ini_set('error_log', '/dev/null');
 
-        try {
-            spiff_create_order(123);
-        } finally {
-            ini_set('error_log', $log);
-        }
+        spiff_create_order(123);
 
         $this->assertCount(1, $GLOBALS['spiff_test_requests']);
+    }
+
+    public function testFailedRequestIsLoggedWithStatusAndResponse() {
+        spiff_test_queue_response(array('errors' => array(array('message' => 'Unauthorised'))), 401);
+        $this->addOrder(123, 'VEG-1042', array($this->spiffItem('transaction-1')));
+
+        spiff_create_order(123);
+
+        $this->assertCount(1, $GLOBALS['spiff_test_logs']);
+        $log = $GLOBALS['spiff_test_logs'][0];
+        $this->assertSame('spiff-connect', $log['context']['source']);
+        $this->assertStringContainsString('WooCommerce order 123 (HTTP 401)', $log['message']);
+        $this->assertStringContainsString('Unauthorised', $log['message']);
+    }
+
+    public function testFailedRequestAnnotatesAndFlagsOrder() {
+        spiff_test_queue_response(array('errors' => array(array('message' => 'Unauthorised'))), 401);
+        $this->addOrder(123, 'VEG-1042', array($this->spiffItem('transaction-1')));
+
+        spiff_create_order(123);
+
+        $order = $GLOBALS['spiff_test_orders'][123];
+        $this->assertCount(1, $order->notes);
+        $this->assertSame('yes', $order->meta['_spiff_sync_failed']);
+    }
+
+    public function testTransportErrorMessageIsLogged() {
+        $GLOBALS['spiff_test_responses'][] = new WP_Error('http_request_failed', 'cURL error 28: timeout');
+        $this->addOrder(123, 'VEG-1042', array($this->spiffItem('transaction-1')));
+
+        spiff_create_order(123);
+
+        $this->assertStringContainsString('cURL error 28: timeout', $GLOBALS['spiff_test_logs'][0]['message']);
+    }
+
+    public function testFailureWithCustomExternalIdDoesNotAnnotateUnrelatedOrder() {
+        spiff_test_queue_response(array('errors' => array(array('message' => 'Unauthorised'))), 401);
+        $this->addOrder(123, 'VEG-1042', array($this->spiffItem('transaction-1')));
+        $this->addOrder(5000, 'VEG-2000', array());
+        add_filter('spiff_order_external_id', function () {
+            return 5000;
+        }, 10, 2);
+
+        spiff_create_order(123);
+
+        $this->assertCount(1, $GLOBALS['spiff_test_logs']);
+        $this->assertSame(array(), $GLOBALS['spiff_test_orders'][5000]->notes);
+        $this->assertSame(array(), $GLOBALS['spiff_test_orders'][123]->notes);
+    }
+
+    public function testSuccessfulRequestIsNotLoggedOrFlagged() {
+        $this->addOrder(123, 'VEG-1042', array($this->spiffItem('transaction-1')));
+
+        spiff_create_order(123);
+
+        $this->assertSame(array(), $GLOBALS['spiff_test_logs']);
+        $this->assertSame(array(), $GLOBALS['spiff_test_orders'][123]->meta);
     }
 
     public function testSendsPaidFlagAndApplicationKey() {

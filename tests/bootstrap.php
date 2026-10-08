@@ -16,6 +16,7 @@ function spiff_test_reset() {
     $GLOBALS['spiff_test_requests'] = array();
     $GLOBALS['spiff_test_responses'] = array();
     $GLOBALS['spiff_test_orders'] = array();
+    $GLOBALS['spiff_test_logs'] = array();
     $GLOBALS['spiff_test_products'] = array();
     $GLOBALS['spiff_test_users'] = array();
     $GLOBALS['spiff_test_user_meta'] = array();
@@ -190,15 +191,41 @@ function wp_remote_post($url, $args) {
     );
 }
 
+function is_wp_error($thing) {
+    return $thing instanceof WP_Error;
+}
+
+class WP_Error {
+    private $message;
+
+    public function __construct($code = '', $message = '') {
+        $this->message = $message;
+    }
+
+    public function get_error_message() {
+        return $this->message;
+    }
+}
+
 function wp_remote_retrieve_response_code($response) {
-    return $response['response']['code'];
+    return is_wp_error($response) ? '' : $response['response']['code'];
 }
 
 function wp_remote_retrieve_body($response) {
-    return $response['body'];
+    return is_wp_error($response) ? '' : $response['body'];
 }
 
 // WooCommerce.
+
+class Spiff_Test_Logger {
+    public function error($message, $context = array()) {
+        $GLOBALS['spiff_test_logs'][] = array('message' => $message, 'context' => $context);
+    }
+}
+
+function wc_get_logger() {
+    return new Spiff_Test_Logger();
+}
 
 function wc_get_order($order_id) {
     return $GLOBALS['spiff_test_orders'][$order_id] ?? false;
@@ -321,6 +348,8 @@ class Spiff_Test_Order {
     private $items;
     private $paid;
     private $fields;
+    public $notes = array();
+    public $meta = array();
 
     public function __construct($id, $order_number, $items, $paid = true, $fields = array()) {
         $this->id = $id;
@@ -349,6 +378,16 @@ class Spiff_Test_Order {
     public function get_coupon_codes() {
         return $this->fields['coupon_codes'] ?? array();
     }
+
+    public function add_order_note($note) {
+        $this->notes[] = $note;
+    }
+
+    public function update_meta_data($key, $value) {
+        $this->meta[$key] = $value;
+    }
+
+    public function save() {}
 
     // Remaining getters (addresses, email, phone, note) read from $fields, e.g. get_billing_city => 'billing_city'.
     public function __call($name, $arguments) {
